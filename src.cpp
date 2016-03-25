@@ -2,13 +2,19 @@
 #include<stdio.h>
 #include<climits>
 #include<cmath>
+#include<ctime>
 
 #define inRange(x, y) ( (x >= 0) && (x < 10) && (y >= 0) && (y < 10) )
 #define loop2(itr1, itr2, lim1, lim2) for(; itr1 < lim1; itr1++)  for(; itr2 < lim2; itr2++)
 
 using namespace std;
 
+clock_t clockStart; 
 long long int cnt;
+bool contTurn = true;
+
+#define checkTime() ((double)(clock() - clockStart)/ CLOCKS_PER_SEC)
+
 class state{
     public:
 
@@ -32,7 +38,7 @@ class state{
                     this->f1 = f1;
                     this->f2 = f2;
                 }
-        }finalMove;
+        }finalMove, moveTmp;
 
         class moveGenerator{        //To generate the next possbile moves available
             public:
@@ -93,6 +99,8 @@ class state{
         float evaluate()
         {
             float finalValue = 0;
+
+            //This part checks for the proximity for all amazons
             for(int i1=0 ; i1<=1; i1++)
                 for(int i2=0; i2<=3; i2++)
                 {
@@ -114,14 +122,61 @@ class state{
                     if(i1 == 0)     finalValue -= cell*2;
                     else    finalValue += cell*3;
                 }
+/*
+            //This is to check for directional moves available
+            for(int i=0; i<2; i++)
+                for(int j=0; j<4; j++)
+                {
+                    int pX, pY;
+                    pX = position[i][j].x;
+                    pY = position[i][j].y;
+                    int dirX, dirY, x, y, cell = 0;
+                    x = pX;
+                    y = pY;
+                    dirX = dirY = -1;
+                    while(1)
+                    {
+                        if(inRange(dirX + x, dirY + y) && mat[dirY + y][dirX + x] == 0) {
+                            x += dirX;
+                            y += dirY;
+                        }
+                        else{
+                            x = pX;
+                            y = pY;
+                            if(dirX == -1 && dirY == -1)  dirX = 0;
+                            else if(dirX == 0 && dirY == -1)  dirX = 1;
+                            else if(dirX == 1 && dirY == -1)  dirY = 0;
+                            else if(dirX == 1 && dirY == 0)  dirY = 1;
+                            else if(dirX == 1 && dirY == 1)  dirX = 0;
+                            else if(dirX == 0 && dirY == 1)  dirX = -1;
+                            else if(dirX == -1 && dirY == 1)  dirY = 0;
+                            else  return false;
+                            if(inRange(dirX + x, dirY + y) && mat[dirY + y][dirX + x] == 0) {
+                                x += dirX;
+                                y += dirY;
+                            }
+                        }
+                        cell++;
+                    }
+                    if(i == 0)  finalValue += cell*2;
+                    else    finalValue -= cell*1.5;
+                }*/
             return finalValue;
         }
 
-        float decideMove(int pCode, int depth){
+        float decideMove(int pCode, int depth, bool isMaximizer, bool topMostLevel = false){
+
             float bestPoint = INT_MIN;
+            if(isMaximizer == false)    bestPoint = INT_MAX;
             int pCodeTmp = pCode;
             int cntTmp = 0;
             cnt++;
+
+            if(checkTime() > 0.9)
+            {
+                contTurn = false;
+                return bestPoint;
+            }
 
             if(depth == 0)  return evaluate();//Returns leaf node heuristic value
 
@@ -141,13 +196,22 @@ class state{
                     position[pCode-1][i].y=moveAmazon.y;
 
                     while(fire.generate(mat)){
+                        if(checkTime() > 0.9)
+                        {
+                            contTurn = false;
+                            return bestPoint;
+                        }
                         cntTmp++;
                         mat[fire.y][fire.x] = -1;
-                        float valTmp = decideMove( pCode%2 + 1, depth - 1);
-                        if(valTmp > bestPoint){
+                        float valTmp = decideMove( pCode%2 + 1, depth - 1, (isMaximizer?false:true));
+                        if(isMaximizer && valTmp > bestPoint)
+                        {
+                            if(topMostLevel)
+                                moveTmp.set(pX, pY, moveAmazon.x, moveAmazon.y, fire.x, fire.y);
                             bestPoint = valTmp;
-                            finalMove.set(pX, pY, moveAmazon.x, moveAmazon.y, fire.x, fire.y);
                         }
+                        if(!isMaximizer && valTmp < bestPoint)
+                            bestPoint = valTmp;
                         mat[fire.y][fire.x] = 0;
                     }
                     mat[pY][pX] = pCode;
@@ -162,6 +226,7 @@ class state{
 
 int main(){
 
+    clock_t begin = clock();
     int mat[10][10];
     for(int i=0; i<10; i++)
         for(int j=0; j<10; j++)
@@ -169,10 +234,22 @@ int main(){
 
     state stBegin;
     stBegin.initialize(mat);
-    stBegin.decideMove(1,2);
+    int i = 1;
+    int cntFinal = 0;
+    int cntTmp = 0;
+    for(i = 1; i<200 && checkTime()<0.9 && contTurn; i++)
+    {
+        stBegin.decideMove(1, i, true, true);
+        stBegin.finalMove = stBegin.moveTmp;
+        cntFinal = cnt - cntTmp;
+        cntTmp = cnt;
+    }
+    if(contTurn == false)   i--;
+    //To give the final output
     cout<<stBegin.finalMove.y1<<" "<<stBegin.finalMove.x1<<endl;
     cout<<stBegin.finalMove.y2<<" "<<stBegin.finalMove.x2<<endl;
     cout<<stBegin.finalMove.f2<<" "<<stBegin.finalMove.f1<<endl;
+    cout<<"D: "<<i<<" T: "<<checkTime()<<" N:"<<cntFinal<<endl;
     //cout<<stBegin.decideMove(1, 1)<<endl;
     //cout<<"\nNo of nodes to be evaluated: "<<cnt;
     return 0;
