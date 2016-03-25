@@ -32,7 +32,7 @@ class state{
                     this->f1 = f1;
                     this->f2 = f2;
                 }
-        };
+        }finalMove;
 
         class moveGenerator{        //To generate the next possbile moves available
             public:
@@ -90,48 +90,39 @@ class state{
                 }
         }
 
-        int calcArea(int x,int y)
-        {
-            int area = 0;
-            moveGenerator moveAmazon;
-            moveAmazon.set(x, y);
-            int pCode = mat[y][x];
-            while(moveAmazon.generate(mat)){  //Iterates all possible moves the selected amazon
-                area++;
-                /*moveGenerator fire;
-                fire.set(moveAmazon.x, moveAmazon.y);
-                mat[y][x] = 0;
-                mat[moveAmazon.y][moveAmazon.x] = 1;
-
-                while(fire.generate(mat))
-                    area++;
-                mat[y][x] = pCode;
-                mat[moveAmazon.y][moveAmazon.x] = 0;
-                */
-            }
-            return area;
-        }
-
         float evaluate()
         {
-            int i1 = 0, i2 = 0;
-            loop2(i1, i2, 2, 4)
-            {
-                int pX,pY;
-                pX = position[i1][i2].x;
-                pY = position[i1][i2].y;
-                int area = calcArea(pX, pY);
-            }
+            float finalValue = 0;
+            for(int i1=0 ; i1<=1; i1++)
+                for(int i2=0; i2<=3; i2++)
+                {
+                    int pX,pY;
+                    pX = position[i1][i2].x;
+                    pY = position[i1][i2].y;
+                    int cell = 0;
+                    for(int i=-1; i<=1; i++)
+                        for(int j=-1;j <=1; j++){
+                            int xT, yT;
+                            xT = pX + i;
+                            yT = pY + j;
+                            if(inRange(xT, yT)){
+                                if(mat[yT][xT] != 0)
+                                    cell++;
+                            }
+                            else    cell++;
+                        }
+                    if(i1 == 0)     finalValue -= cell*2;
+                    else    finalValue += cell*3;
+                }
+            return finalValue;
         }
 
         float decideMove(int pCode, int depth){
             float bestPoint = INT_MIN;
-            move finalMove;
             int pCodeTmp = pCode;
             int cntTmp = 0;
-
             cnt++;
-            //if(depth==0)return 0;
+
             if(depth == 0)  return evaluate();//Returns leaf node heuristic value
 
             for(int i=0; i<4; i++){
@@ -151,16 +142,12 @@ class state{
 
                     while(fire.generate(mat)){
                         cntTmp++;
-                        /*if(depth==1 && cntTmp>50)
-                            return 0;
-                        if(depth==2 && cntTmp > 100)
-                            return 0;
-                        if(depth == 3 && cntTmp >200)
-                            return 0;
-                            */
                         mat[fire.y][fire.x] = -1;
-                        //cout<<"PCODE: "<<pCode<<"   Depth: "<<depth<<endl;
-                        decideMove( pCode%2 + 1, depth - 1);
+                        float valTmp = decideMove( pCode%2 + 1, depth - 1);
+                        if(valTmp > bestPoint){
+                            bestPoint = valTmp;
+                            finalMove.set(pX, pY, moveAmazon.x, moveAmazon.y, fire.x, fire.y);
+                        }
                         mat[fire.y][fire.x] = 0;
                     }
                     mat[pY][pX] = pCode;
@@ -169,6 +156,7 @@ class state{
                     position[pCodeTmp-1][i].y=pY;
                 }
             }
+            return bestPoint;
         }
 };
 
@@ -181,7 +169,11 @@ int main(){
 
     state stBegin;
     stBegin.initialize(mat);
-    stBegin.decideMove(1, 1);
-    cout<<"\nNo of nodes to be evaluated: "<<cnt;
+    stBegin.decideMove(1,2);
+    cout<<stBegin.finalMove.y1<<" "<<stBegin.finalMove.x1<<endl;
+    cout<<stBegin.finalMove.y2<<" "<<stBegin.finalMove.x2<<endl;
+    cout<<stBegin.finalMove.f2<<" "<<stBegin.finalMove.f1<<endl;
+    //cout<<stBegin.decideMove(1, 1)<<endl;
+    //cout<<"\nNo of nodes to be evaluated: "<<cnt;
     return 0;
 }
