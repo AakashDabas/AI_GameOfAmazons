@@ -4,6 +4,8 @@
 #include<cmath>
 #include<ctime>
 
+#define timeBound   0.98
+#define alphaBeta   true
 #define inRange(x, y) ( (x >= 0) && (x < 10) && (y >= 0) && (y < 10) )
 #define loop2(itr1, itr2, lim1, lim2) for(; itr1 < lim1; itr1++)  for(; itr2 < lim2; itr2++)
 
@@ -101,28 +103,28 @@ class state{
             float finalValue = 0;
 
             //This part checks for the proximity for all amazons
-            for(int i1=0 ; i1<=1; i1++)
-                for(int i2=0; i2<=3; i2++)
-                {
-                    int pX,pY;
-                    pX = position[i1][i2].x;
-                    pY = position[i1][i2].y;
-                    int cell = 0;
-                    for(int i=-1; i<=1; i++)
-                        for(int j=-1;j <=1; j++){
-                            int xT, yT;
-                            xT = pX + i;
-                            yT = pY + j;
-                            if(inRange(xT, yT)){
-                                if(mat[yT][xT] != 0)
-                                    cell++;
-                            }
-                            else    cell++;
-                        }
-                    if(i1 == 0)     finalValue -= cell*2;
-                    else    finalValue += cell*3;
-                }
-/*
+            /* for(int i1=0 ; i1<=1; i1++)
+               for(int i2=0; i2<=3; i2++)
+               {
+               int pX,pY;
+               pX = position[i1][i2].x;
+               pY = position[i1][i2].y;
+               int cell = 0;
+               for(int i=-1; i<=1; i++)
+               for(int j=-1;j <=1; j++){
+               int xT, yT;
+               xT = pX + i;
+               yT = pY + j;
+               if(inRange(xT, yT)){
+               if(mat[yT][xT] != 0)
+               cell++;
+               }
+               else    cell++;
+               }
+               if(i1 == 0)     finalValue -= cell*2;
+               else    finalValue += cell*3;
+               }*/
+
             //This is to check for directional moves available
             for(int i=0; i<2; i++)
                 for(int j=0; j<4; j++)
@@ -150,7 +152,7 @@ class state{
                             else if(dirX == 1 && dirY == 1)  dirX = 0;
                             else if(dirX == 0 && dirY == 1)  dirX = -1;
                             else if(dirX == -1 && dirY == 1)  dirY = 0;
-                            else  return false;
+                            else  break;
                             if(inRange(dirX + x, dirY + y) && mat[dirY + y][dirX + x] == 0) {
                                 x += dirX;
                                 y += dirY;
@@ -160,25 +162,27 @@ class state{
                     }
                     if(i == 0)  finalValue += cell*2;
                     else    finalValue -= cell*1.5;
-                }*/
+                }
             return finalValue;
         }
 
-        float decideMove(int pCode, int depth, bool isMaximizer, bool topMostLevel = false){
+        float decideMove(int pCode, int depth, bool isMaximizer,int alpha = INT_MIN, int beta = INT_MAX, bool topMostLevel = false){
 
             float bestPoint = INT_MIN;
             if(isMaximizer == false)    bestPoint = INT_MAX;
             int pCodeTmp = pCode;
-            int cntTmp = 0;
-            cnt++;
 
-            if(checkTime() > 0.9)
+            if(checkTime() > timeBound)
             {
                 contTurn = false;
-                return bestPoint;
+                if(isMaximizer)     return alpha;
+                else    return beta;
             }
 
-            if(depth == 0)  return evaluate();//Returns leaf node heuristic value
+            if(depth == 0){
+                ++cnt;
+                return evaluate();//Returns leaf node heuristic value
+            }
 
             for(int i=0; i<4; i++){
 
@@ -186,7 +190,6 @@ class state{
                 int pY = position[pCode-1][i].y;
                 moveGenerator moveAmazon;
                 moveAmazon.set(pX, pY);
-
                 while(moveAmazon.generate(mat)){  //Iterates all possible moves the selected amazon
                     moveGenerator fire;
                     fire.set(moveAmazon.x, moveAmazon.y);
@@ -196,22 +199,54 @@ class state{
                     position[pCode-1][i].y=moveAmazon.y;
 
                     while(fire.generate(mat)){
-                        if(checkTime() > 0.9)
+                        if(checkTime() > timeBound)
                         {
                             contTurn = false;
                             return bestPoint;
                         }
-                        cntTmp++;
                         mat[fire.y][fire.x] = -1;
-                        float valTmp = decideMove( pCode%2 + 1, depth - 1, (isMaximizer?false:true));
-                        if(isMaximizer && valTmp > bestPoint)
+                        if(isMaximizer)     //Maximizer layer
                         {
-                            if(topMostLevel)
-                                moveTmp.set(pX, pY, moveAmazon.x, moveAmazon.y, fire.x, fire.y);
-                            bestPoint = valTmp;
+                            float valTmp = decideMove( pCode%2 + 1, depth - 1, (isMaximizer?false:true), alpha, beta);
+                            //if(topMostLevel)
+                            //cout<<valTmp<<" ";
+                            if(valTmp > bestPoint){
+                                if(topMostLevel)//To register the best move available
+                                {
+                                    moveTmp.set(pX, pY, moveAmazon.x, moveAmazon.y, fire.x, fire.y);
+                                    //cout<<endl<<bestPoint<<endl;
+                                    //cout<<pX<<" "<<pY<<" "<<moveAmazon.x<<" "<<moveAmazon.y<<" "<<fire.x<<" "<<fire.y<<endl;
+                                }
+                                bestPoint = valTmp;
+                            }
+                            if(bestPoint > alpha)  alpha = bestPoint;
+                            if(alpha >= beta && alphaBeta)
+                            {
+                                //cout<<"Beta CutOff;";
+                                mat[fire.y][fire.x] = 0;
+                                mat[pY][pX] = pCode;
+                                mat[moveAmazon.y][moveAmazon.x] = 0;
+                                position[pCodeTmp-1][i].x=pX;
+                                position[pCodeTmp-1][i].y=pY;
+                                return bestPoint;
+                            }
                         }
-                        if(!isMaximizer && valTmp < bestPoint)
-                            bestPoint = valTmp;
+                        if(isMaximizer == false)    //Minimizer layer
+                        {
+                            float valTmp = decideMove( pCode%2 + 1, depth - 1, (isMaximizer?false:true), alpha, beta);
+                            if(valTmp < bestPoint)  bestPoint = valTmp;
+                            if(bestPoint < beta)   beta = bestPoint;
+                            if(beta <= alpha && alphaBeta)
+                            {
+                                //cout<<"Alpha CutOff V:"<<bestPoint<<" A:"<<alpha<<" C:"<<cnt<<endl;
+                                mat[fire.y][fire.x] = 0;
+                                mat[pY][pX] = pCode;
+                                mat[moveAmazon.y][moveAmazon.x] = 0;
+                                position[pCodeTmp-1][i].x=pX;
+                                position[pCodeTmp-1][i].y=pY;
+                                return bestPoint;
+                            }
+                        }
                         mat[fire.y][fire.x] = 0;
                     }
                     mat[pY][pX] = pCode;
@@ -236,13 +271,15 @@ int main(){
     stBegin.initialize(mat);
     int i = 1;
     int cntFinal = 0;
-    int cntTmp = 0;
-    for(i = 1; i<200 && checkTime()<0.9 && contTurn; i++)
+    for(i = 1; i<100 && checkTime()<timeBound && contTurn; i++)
     {
-        stBegin.decideMove(1, i, true, true);
-        stBegin.finalMove = stBegin.moveTmp;
-        cntFinal = cnt - cntTmp;
-        cntTmp = cnt;
+        stBegin.decideMove(1, i, true, INT_MIN, INT_MAX, true);
+        if(contTurn)
+        {
+            stBegin.finalMove = stBegin.moveTmp;
+            cntFinal = cnt;
+        }
+        cnt = 0;
     }
     if(contTurn == false)   i--;
     //To give the final output
@@ -250,7 +287,5 @@ int main(){
     cout<<stBegin.finalMove.y2<<" "<<stBegin.finalMove.x2<<endl;
     cout<<stBegin.finalMove.f2<<" "<<stBegin.finalMove.f1<<endl;
     cout<<"D: "<<i<<" T: "<<checkTime()<<" N:"<<cntFinal<<endl;
-    //cout<<stBegin.decideMove(1, 1)<<endl;
-    //cout<<"\nNo of nodes to be evaluated: "<<cnt;
     return 0;
 }
