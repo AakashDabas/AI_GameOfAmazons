@@ -23,20 +23,25 @@ map< int[10][10], float> uniTable;  //To implement transposition table
 class node{
     public:
     bool key;
+    int frequency;
     map<int, node> arr;
 
-    void markNodes(bool order, int n=50)
+    void markNodes(bool order, int n=200)
     {
-        if(order){
+        if(!order){
             map<int, node> :: iterator it = arr.begin();
-            for(int i=0; i<n && it != arr.end(); it++, i++){
+            for(int i=0; i<n && it != arr.end(); it++){
                 it->second.key = true;
+                i += it->second.frequency;
             }
         }
-        else if(!order){
+        else if(order){
             map<int, node> :: iterator it = arr.end();
+            it--;
             for(int i=0; i<n && it != arr.begin(); it--, i++){
+                //cout<<it->first<<" "<<it->second.frequency<<endl;
                 it->second.key = true;
+                i += it->second.frequency;
             }
         }
     }
@@ -265,6 +270,7 @@ class state{
         float decideMove(int pCode, int depth, bool isMaximizer, node &enlist, int alpha = INT_MIN, int beta = INT_MAX, bool topMostLevel = false){
 
             float bestPoint = INT_MIN;
+            map<float, bool> mappy;
             if(isMaximizer == false)    bestPoint = INT_MAX;
             int pCodeTmp = pCode;
 
@@ -299,7 +305,16 @@ class state{
                         //To check if state is marked or not
                         float val = evaluate();
                         if( depth>1 && enlist.arr[val].key == false)    continue;
-                        else if( depth == 1)    enlist.arr[val] = defaultVal;
+                        else if( depth == 1){
+                            map<float, bool>::iterator it = mappy.begin();
+                            bool detected = false;
+                            for(; it != mappy.end() && !detected; it++)
+                                if(it->first == val)
+                                    detected = true;
+                            mappy[val] = true;
+                            if(!detected)    enlist.arr[val] = defaultVal;
+                            else    enlist.arr[val].frequency++;
+                        }
 
                         if(checkTime() > timeBound)
                         {
@@ -309,7 +324,7 @@ class state{
                         mat[fire.y][fire.x] = -1;
                         if(isMaximizer)     //Maximizer layer
                         {
-                            float valTmp = decideMove( pCode%2 + 1, depth - 1, (isMaximizer?false:true), enlist, alpha, beta);
+                            float valTmp = decideMove( pCode%2 + 1, depth - 1, (isMaximizer?false:true), enlist.arr[val], alpha, beta);
                             if(valTmp > bestPoint){
                                 bestPoint = valTmp;
                                 if(topMostLevel)//To register the best move available
@@ -329,7 +344,7 @@ class state{
                         }
                         if(isMaximizer == false)    //Minimizer layer
                         {
-                            float valTmp = decideMove( pCode%2 + 1, depth - 1, (isMaximizer?false:true), enlist, alpha, beta);
+                            float valTmp = decideMove( pCode%2 + 1, depth - 1, (isMaximizer?false:true), enlist.arr[val], alpha, beta);
                             if(valTmp < bestPoint)  bestPoint = valTmp;
                             if(bestPoint < beta)   beta = bestPoint;
                             if(beta <= alpha && alphaBeta)
@@ -370,10 +385,11 @@ int main(){
     int cntFinal = 0;
     node enlist;
     defaultVal.key = false;
+    defaultVal.frequency = 0;
     for(i = 1; i<20 && checkTime()<timeBound && contTurn; i++)
     {
         stBegin.decideMove(1, i, true, enlist, INT_MIN, INT_MAX, true);
-        cout<<"i : "<< i<<" cnt: "<<cnt<<endl;
+        //cout<<"i : "<< i<<" cnt: "<<cnt<<endl;
         if(contTurn)
         {
             stBegin.finalMove = stBegin.moveTmp;
