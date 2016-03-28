@@ -1,21 +1,46 @@
 #include<iostream>
-#include<stdio.h>
 #include<climits>
 #include<cmath>
 #include<ctime>
+#include<map>
 
 #define timeBound   0.98
 #define alphaBeta   true
 #define inRange(x, y) ( (x >= 0) && (x < 10) && (y >= 0) && (y < 10) )
 #define loop2(itr1, itr2, lim1, lim2) for(; itr1 < lim1; itr1++)  for(; itr2 < lim2; itr2++)
+#define displayMat()  for(int itr1=0; itr1<10; itr1++)    {for(int itr2=0; itr2<10; itr2++)    cout<<mat[itr1][itr2]<<" ";     cout<<endl;}
+#define checkMap(mappy, val)    (mappy.find(val)) != mappy.end()
 
 using namespace std;
 
 clock_t clockStart; 
 long long int cnt;
 bool contTurn = true;
+map< int[10][10], float> uniTable;  //To implement transposition table
 
 #define checkTime() ((double)(clock() - clockStart)/ CLOCKS_PER_SEC)
+
+class node{
+    public:
+    bool key;
+    map<int, node> arr;
+
+    void markNodes(bool order, int n=50)
+    {
+        if(order){
+            map<int, node> :: iterator it = arr.begin();
+            for(int i=0; i<n && it != arr.end(); it++, i++){
+                it->second.key = true;
+            }
+        }
+        else if(!order){
+            map<int, node> :: iterator it = arr.end();
+            for(int i=0; i<n && it != arr.begin(); it--, i++){
+                it->second.key = true;
+            }
+        }
+    }
+}defaultVal;
 
 class state{
     public:
@@ -103,29 +128,28 @@ class state{
             float finalValue = 0;
 
             //This part checks for the proximity for all amazons
-            /* for(int i1=0 ; i1<=1; i1++)
-               for(int i2=0; i2<=3; i2++)
-               {
-               int pX,pY;
-               pX = position[i1][i2].x;
-               pY = position[i1][i2].y;
-               int cell = 0;
-               for(int i=-1; i<=1; i++)
-               for(int j=-1;j <=1; j++){
-               int xT, yT;
-               xT = pX + i;
-               yT = pY + j;
-               if(inRange(xT, yT)){
-               if(mat[yT][xT] != 0)
-               cell++;
-               }
-               else    cell++;
-               }
-               if(i1 == 0)     finalValue -= cell*2;
-               else    finalValue += cell*3;
-               }*/
+            for(int i1=0 ; i1<=1; i1++)
+                for(int i2=0; i2<=3; i2++)
+                {
+                    int pX,pY;
+                    pX = position[i1][i2].x;
+                    pY = position[i1][i2].y;
+                    int cell = 0;
+                    for(int i=-1; i<=1; i++)
+                        for(int j=-1;j <=1; j++){
+                            int xT, yT;
+                            xT = pX + i;
+                            yT = pY + j;
+                            if(inRange(xT, yT)){
+                                if(mat[yT][xT] != 0)
+                                    cell++;
+                            }
+                            else    cell++;
+                        }
+                    if(i1 == 0)     finalValue -= cell*cell*3;
+                    else    finalValue += cell*cell*4;
+                }
 
-            //This is to check for directional moves available
             for(int i=0; i<2; i++)
                 for(int j=0; j<4; j++)
                 {
@@ -158,15 +182,87 @@ class state{
                                 y += dirY;
                             }
                         }
-                        cell++;
+                        if(i == 0)  finalValue -= cell*3;
+                        else    finalValue += cell*4.5;
+                    }
+                }
+            //This is to check for directional moves available
+            /*for(int i=0; i<2; i++)
+                for(int j=0; j<4; j++)
+                {
+                    int pX, pY;
+                    pX = position[i][j].x;
+                    pY = position[i][j].y;
+                    int dirX, dirY, x, y, cell = 0;
+                    x = pX;
+                    y = pY;
+                    dirX = dirY = -1;
+                    while(1)
+                    {
+                        if(inRange(dirX + x, dirY + y) && mat[dirY + y][dirX + x] == 0) {
+                            x += dirX;
+                            y += dirY;
+                        }
+                        else{
+                            x = pX;
+                            y = pY;
+                            if(dirX == -1 && dirY == -1)  dirX = 0;
+                            else if(dirX == 0 && dirY == -1)  dirX = 1;
+                            else if(dirX == 1 && dirY == -1)  dirY = 0;
+                            else if(dirX == 1 && dirY == 0)  dirY = 1;
+                            else if(dirX == 1 && dirY == 1)  dirX = 0;
+                            else if(dirX == 0 && dirY == 1)  dirX = -1;
+                            else if(dirX == -1 && dirY == 1)  dirY = 0;
+                            else  break;
+                            if(inRange(dirX + x, dirY + y) && mat[dirY + y][dirX + x] == 0) {
+                                x += dirX;
+                                y += dirY;
+                            }
+                        }
+                        int x2, y2;
+                        int dirX2 = -1, dirY2 = -1;
+                        x2 = x;
+                        y2 = y;
+                        while(1)
+                        {
+                            if(inRange(dirX2 + x2, dirY2 + y2) && mat[dirY2 + y2][dirX2 + x2] == 0) {
+                                x2 += dirX2;
+                                y2 += dirY2;
+                            }
+                            else{
+                                x2 = x;
+                                y2 = y;
+                                if(dirX2 == -1 && dirY2 == -1)  dirX2 = 0;
+                                else if(dirX2 == 0 && dirY2 == -1)  dirX2 = 1;
+                                else if(dirX2 == 1 && dirY2 == -1)  dirY2 = 0;
+                                else if(dirX2 == 1 && dirY2 == 0)  dirY2 = 1;
+                                else if(dirX2 == 1 && dirY2 == 1)  dirX2 = 0;
+                                else if(dirX2 == 0 && dirY2 == 1)  dirX2 = -1;
+                                else if(dirX2 == -1 && dirY2 == 1)  dirY2 = 0;
+                                else  break;
+                                if(inRange(dirX2 + x2, dirY2 + y2) && mat[dirY2 + y2][dirX2 + x2] == 0) {
+                                    x2 += dirX2;
+                                    y2 += dirY2;
+                                }
+                            }
+                            if(mat[y2][x2] == 0)
+                            {
+                                cell++;
+                                mat[y2][x2] = -2;
+                            }
+                        }
                     }
                     if(i == 0)  finalValue += cell*2;
                     else    finalValue -= cell*1.5;
-                }
+                }*/
+            for(int i=0; i<10; i++)
+                for(int j=0; j<10; j++)
+                    if(mat[i][j] == -2)
+                        mat[i][j] = 0;
             return finalValue;
         }
 
-        float decideMove(int pCode, int depth, bool isMaximizer,int alpha = INT_MIN, int beta = INT_MAX, bool topMostLevel = false){
+        float decideMove(int pCode, int depth, bool isMaximizer, node &enlist, int alpha = INT_MIN, int beta = INT_MAX, bool topMostLevel = false){
 
             float bestPoint = INT_MIN;
             if(isMaximizer == false)    bestPoint = INT_MAX;
@@ -199,6 +295,12 @@ class state{
                     position[pCode-1][i].y=moveAmazon.y;
 
                     while(fire.generate(mat)){
+
+                        //To check if state is marked or not
+                        float val = evaluate();
+                        if( depth>1 && enlist.arr[val].key == false)    continue;
+                        else if( depth == 1)    enlist.arr[val] = defaultVal;
+
                         if(checkTime() > timeBound)
                         {
                             contTurn = false;
@@ -207,17 +309,11 @@ class state{
                         mat[fire.y][fire.x] = -1;
                         if(isMaximizer)     //Maximizer layer
                         {
-                            float valTmp = decideMove( pCode%2 + 1, depth - 1, (isMaximizer?false:true), alpha, beta);
-                            //if(topMostLevel)
-                            //cout<<valTmp<<" ";
+                            float valTmp = decideMove( pCode%2 + 1, depth - 1, (isMaximizer?false:true), enlist, alpha, beta);
                             if(valTmp > bestPoint){
-                                if(topMostLevel)//To register the best move available
-                                {
-                                    moveTmp.set(pX, pY, moveAmazon.x, moveAmazon.y, fire.x, fire.y);
-                                    //cout<<endl<<bestPoint<<endl;
-                                    //cout<<pX<<" "<<pY<<" "<<moveAmazon.x<<" "<<moveAmazon.y<<" "<<fire.x<<" "<<fire.y<<endl;
-                                }
                                 bestPoint = valTmp;
+                                if(topMostLevel)//To register the best move available
+                                    moveTmp.set(pX, pY, moveAmazon.x, moveAmazon.y, fire.x, fire.y);
                             }
                             if(bestPoint > alpha)  alpha = bestPoint;
                             if(alpha >= beta && alphaBeta)
@@ -233,12 +329,12 @@ class state{
                         }
                         if(isMaximizer == false)    //Minimizer layer
                         {
-                            float valTmp = decideMove( pCode%2 + 1, depth - 1, (isMaximizer?false:true), alpha, beta);
+                            float valTmp = decideMove( pCode%2 + 1, depth - 1, (isMaximizer?false:true), enlist, alpha, beta);
                             if(valTmp < bestPoint)  bestPoint = valTmp;
                             if(bestPoint < beta)   beta = bestPoint;
                             if(beta <= alpha && alphaBeta)
                             {
-                                //cout<<"Alpha CutOff V:"<<bestPoint<<" A:"<<alpha<<" C:"<<cnt<<endl;
+                                //cout<<"Alpha CutOff V;";
                                 mat[fire.y][fire.x] = 0;
                                 mat[pY][pX] = pCode;
                                 mat[moveAmazon.y][moveAmazon.x] = 0;
@@ -255,6 +351,7 @@ class state{
                     position[pCodeTmp-1][i].y=pY;
                 }
             }
+            enlist.markNodes(isMaximizer?true:false);
             return bestPoint;
         }
 };
@@ -271,9 +368,12 @@ int main(){
     stBegin.initialize(mat);
     int i = 1;
     int cntFinal = 0;
-    for(i = 1; i<100 && checkTime()<timeBound && contTurn; i++)
+    node enlist;
+    defaultVal.key = false;
+    for(i = 1; i<20 && checkTime()<timeBound && contTurn; i++)
     {
-        stBegin.decideMove(1, i, true, INT_MIN, INT_MAX, true);
+        stBegin.decideMove(1, i, true, enlist, INT_MIN, INT_MAX, true);
+        cout<<"i : "<< i<<" cnt: "<<cnt<<endl;
         if(contTurn)
         {
             stBegin.finalMove = stBegin.moveTmp;
