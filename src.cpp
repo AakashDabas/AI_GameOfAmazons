@@ -5,7 +5,7 @@
 #include<map>
 #include<vector>
 
-#define timeBound   0.98
+#define timeBound   1.98
 #define alphaBeta   true
 #define cutOff  true
 #define inRange(x, y) ( (x >= 0) && (x < 10) && (y >= 0) && (y < 10) )
@@ -31,7 +31,7 @@ class node{
         map<float, keyNode> arr;
         map<vector<vector<int> >, node> treeRecord;
 
-        void markNodes(bool order, int n=50)
+        void markNodes(bool order, int n=200)
         {
             if(!order){
                 map<float, keyNode> :: iterator it = arr.begin();
@@ -161,6 +161,7 @@ class state{
                     else    finalValue += cell*cell*4;
                 }
 
+            //To check the one move direction cells available
             for(int i=0; i<2; i++)
                 for(int j=0; j<4; j++)
                 {
@@ -193,79 +194,79 @@ class state{
                                 y += dirY;
                             }
                         }
-                        if(i == 0)  finalValue -= cell*3;
-                        else    finalValue += cell*4.5;
+                        if(i == 0)  finalValue += cell*3;
+                        else    finalValue -= cell*4.5;
                     }
                 }
             //This is to check for directional moves available
-            /*for(int i=0; i<2; i++)
-              for(int j=0; j<4; j++)
-              {
-              int pX, pY;
-              pX = position[i][j].x;
-              pY = position[i][j].y;
-              int dirX, dirY, x, y, cell = 0;
-              x = pX;
-              y = pY;
-              dirX = dirY = -1;
-              while(1)
-              {
-              if(inRange(dirX + x, dirY + y) && mat[dirY + y][dirX + x] == 0) {
-              x += dirX;
-              y += dirY;
-              }
-              else{
-              x = pX;
-              y = pY;
-              if(dirX == -1 && dirY == -1)  dirX = 0;
-              else if(dirX == 0 && dirY == -1)  dirX = 1;
-              else if(dirX == 1 && dirY == -1)  dirY = 0;
-              else if(dirX == 1 && dirY == 0)  dirY = 1;
-              else if(dirX == 1 && dirY == 1)  dirX = 0;
-              else if(dirX == 0 && dirY == 1)  dirX = -1;
-              else if(dirX == -1 && dirY == 1)  dirY = 0;
-              else  break;
-              if(inRange(dirX + x, dirY + y) && mat[dirY + y][dirX + x] == 0) {
-              x += dirX;
-              y += dirY;
-              }
-              }
-              int x2, y2;
-              int dirX2 = -1, dirY2 = -1;
-              x2 = x;
-              y2 = y;
-              while(1)
-              {
-              if(inRange(dirX2 + x2, dirY2 + y2) && mat[dirY2 + y2][dirX2 + x2] == 0) {
-              x2 += dirX2;
-              y2 += dirY2;
-              }
-              else{
-              x2 = x;
-              y2 = y;
-              if(dirX2 == -1 && dirY2 == -1)  dirX2 = 0;
-              else if(dirX2 == 0 && dirY2 == -1)  dirX2 = 1;
-              else if(dirX2 == 1 && dirY2 == -1)  dirY2 = 0;
-              else if(dirX2 == 1 && dirY2 == 0)  dirY2 = 1;
-              else if(dirX2 == 1 && dirY2 == 1)  dirX2 = 0;
-              else if(dirX2 == 0 && dirY2 == 1)  dirX2 = -1;
-              else if(dirX2 == -1 && dirY2 == 1)  dirY2 = 0;
-              else  break;
-              if(inRange(dirX2 + x2, dirY2 + y2) && mat[dirY2 + y2][dirX2 + x2] == 0) {
-              x2 += dirX2;
-              y2 += dirY2;
-              }
-              }
-              if(mat[y2][x2] == 0)
-              {
-              cell++;
-              mat[y2][x2] = -2;
-              }
-              }
-              }
-              if(i == 0)  finalValue += cell*2;
-              else    finalValue -= cell*1.5;
-              }*/
+            for(int i=0; i<2; i++)
+                for(int j=0; j<4; j++)
+                {
+                    int pX, pY;
+                    pX = position[i][j].x;
+                    pY = position[i][j].y;
+                    int dirX, dirY, x, y, cell = 0;
+                    x = pX;
+                    y = pY;
+                    dirX = dirY = -1;
+                    while(1)
+                    {
+                        if(inRange(dirX + x, dirY + y) && mat[dirY + y][dirX + x] == 0) {
+                            x += dirX;
+                            y += dirY;
+                        }
+                        else{
+                            x = pX;
+                            y = pY;
+                            if(dirX == -1 && dirY == -1)  dirX = 0;
+                            else if(dirX == 0 && dirY == -1)  dirX = 1;
+                            else if(dirX == 1 && dirY == -1)  dirY = 0;
+                            else if(dirX == 1 && dirY == 0)  dirY = 1;
+                            else if(dirX == 1 && dirY == 1)  dirX = 0;
+                            else if(dirX == 0 && dirY == 1)  dirX = -1;
+                            else if(dirX == -1 && dirY == 1)  dirY = 0;
+                            else  break;
+                            if(inRange(dirX + x, dirY + y) && mat[dirY + y][dirX + x] == 0) {
+                                x += dirX;
+                                y += dirY;
+                            }
+                        }
+                        int x2, y2;
+                        int dirX2 = -1, dirY2 = -1;
+                        x2 = x;
+                        y2 = y;
+                        while(1)
+                        {
+                            if(inRange(dirX2 + x2, dirY2 + y2) && mat[dirY2 + y2][dirX2 + x2] == 0) {
+                                x2 += dirX2;
+                                y2 += dirY2;
+                            }
+                            else{
+                                x2 = x;
+                                y2 = y;
+                                if(dirX2 == -1 && dirY2 == -1)  dirX2 = 0;
+                                else if(dirX2 == 0 && dirY2 == -1)  dirX2 = 1;
+                                else if(dirX2 == 1 && dirY2 == -1)  dirY2 = 0;
+                                else if(dirX2 == 1 && dirY2 == 0)  dirY2 = 1;
+                                else if(dirX2 == 1 && dirY2 == 1)  dirX2 = 0;
+                                else if(dirX2 == 0 && dirY2 == 1)  dirX2 = -1;
+                                else if(dirX2 == -1 && dirY2 == 1)  dirY2 = 0;
+                                else  break;
+                                if(inRange(dirX2 + x2, dirY2 + y2) && mat[dirY2 + y2][dirX2 + x2] == 0) {
+                                    x2 += dirX2;
+                                    y2 += dirY2;
+                                }
+                            }
+                            if(mat[y2][x2] == 0)
+                            {
+                                cell++;
+                                mat[y2][x2] = -2;
+                            }
+                        }
+                    }
+                    if(i == 0)  finalValue += cell*2;
+                    else    finalValue -= cell*1.5;
+                }
             for(int i=0; i<10; i++)
                 for(int j=0; j<10; j++)
                     if(mat[i][j] == -2)
@@ -309,8 +310,8 @@ class state{
                     while(fire.generate(mat)){
 
                         //To check if state is marked or not
+                        float val = evaluate();
                         if(cutOff){
-                            float val = evaluate();
                             if( depth>1 && enlist.arr[val].key == false)    continue;
                             else if( depth == 1){
                                 map<float, bool>::iterator it = mappy.begin();
@@ -337,14 +338,16 @@ class state{
                             if(depth == 1)     enlistNxt = enlist;
                             else    enlistNxt = enlist.treeRecord[mat];
                         }
-                        
+
                         if(isMaximizer)     //Maximizer layer
                         {
                             float valTmp = decideMove( pCode%2 + 1, depth - 1, (isMaximizer?false:true), enlistNxt, alpha, beta);
                             if(valTmp > bestPoint){
                                 bestPoint = valTmp;
                                 if(topMostLevel)//To register the best move available
+                                {
                                     moveTmp.set(pX, pY, moveAmazon.x, moveAmazon.y, fire.x, fire.y);
+                                }
                             }
                             if(bestPoint > alpha)  alpha = bestPoint;
                             if(alpha >= beta && alphaBeta)
@@ -392,7 +395,6 @@ int main(){
 
     clock_t begin = clock();
     vector<vector<int> > mat(10, vector<int>(10));
-    cout<<"I'mHere:";
     for(int i=0; i<10; i++)
         for(int j=0; j<10; j++)
             cin>> mat[i][j];
@@ -400,20 +402,21 @@ int main(){
     state stBegin;
     stBegin.initialize(mat);
     int i = 1;
-    int cntFinal = 0;
+    int cntFinal = 0, level = 0;
     node enlist;
     for(i = 1; i<20 && checkTime()<timeBound && contTurn; i++)
     {
         stBegin.decideMove(1, i, true, enlist, INT_MIN, INT_MAX, true);
-        /*cout<<"i : "<< i<<" cnt: "<<cnt<<" t: "<<checkTime()<<endl;
-        cout<<"\n Move selected:-\n";
-        cout<<stBegin.finalMove.y1<<" "<<stBegin.finalMove.x1<<endl;
-        cout<<stBegin.finalMove.y2<<" "<<stBegin.finalMove.x2<<endl;
-        cout<<stBegin.finalMove.f2<<" "<<stBegin.finalMove.f1<<endl;*/
         if(contTurn)
         {
             stBegin.finalMove = stBegin.moveTmp;
+            level++;
             cntFinal = cnt;
+            /*cout<<"i : "<< i<<" cnt: "<<cnt<<" t: "<<checkTime()<<endl;
+              cout<<"\n Move selected:-\n";
+              cout<<stBegin.finalMove.y1<<" "<<stBegin.finalMove.x1<<endl;
+              cout<<stBegin.finalMove.y2<<" "<<stBegin.finalMove.x2<<endl;
+              cout<<stBegin.finalMove.f2<<" "<<stBegin.finalMove.f1<<endl;*/
         }
         cnt = 0;
     }
@@ -422,6 +425,6 @@ int main(){
     cout<<stBegin.finalMove.y1<<" "<<stBegin.finalMove.x1<<endl;
     cout<<stBegin.finalMove.y2<<" "<<stBegin.finalMove.x2<<endl;
     cout<<stBegin.finalMove.f2<<" "<<stBegin.finalMove.f1<<endl;
-    cout<<"D: "<<i<<" T: "<<checkTime()<<" N:"<<cntFinal<<endl;
+    cout<<"D: "<<level<<" T: "<<checkTime()<<" N:"<<cntFinal<<endl;
     return 0;
 }
