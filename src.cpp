@@ -30,23 +30,23 @@ class node{
         map<float, keyNode> arr;
         map<vector<vector<int> >, node> treeRecord;
 
-        void markNodes(bool order, int n=10)
+        void markNodes(bool order, int n=20)
         {
             if(!order){
-                cout<<"***************************\n";
+                //cout<<"***************************\n";
                 map<float, keyNode> :: iterator it = arr.begin();
                 for(int i=0; i<n && it != arr.end(); it++){
-                    cout<<it->first<<" "<<it->second.frequency<<endl;
+                    //cout<<it->first<<" "<<it->second.frequency<<endl;
                     it->second.key = true;
                     i += it->second.frequency;
                 }
             }
             else if(order){
-                cout<<"================================\n";
+                //cout<<"================================\n";
                 map<float, keyNode> :: iterator it = arr.end();
                 it--;
                 for(int i=0; i<n && it != arr.begin(); it--, i++){
-                    cout<<it->first<<" "<<it->second.frequency<<endl;
+                    //cout<<it->first<<" "<<it->second.frequency<<endl;
                     it->second.key = true;
                     i += it->second.frequency;
                 }
@@ -331,29 +331,15 @@ class state{
                     while(fire.generate(mat)){
 
                         //To check if state is marked or not
-                        if(depth == 3)
-                        {
-                            cout<<"``````````````~~~~\n";
-                            for(int m=0; m<10; m++){
-                                for(int n=0; n<10; n++)
-                                    cout<<mat[m][n]<<" ";
-                                cout<<endl;
-                            }
-                        }
+                        mat[fire.y][fire.x] = -1;
                         float val = evaluate();
                         if(cutOff){
                             if( depth>1 && enlist.arr[val].key == false){
-                                if(depth == 3)
-                                {
-                                    cout<<"+++++++++++++++++++++++++++++++++++++"<<endl;
-                                    for(int m=0; m<10; m++){
-                                        for(int n=0; n<10; n++)
-                                            cout<<mat[m][n]<<" ";
-                                        cout<<endl;
-                                    }
-                                    cout<<"NOPE~ "<<val;
-                                    //enlist.display();
-                                }
+                                mat[fire.y][fire.x] = 0;
+                                mat[pY][pX] = pCode;
+                                mat[moveAmazon.y][moveAmazon.x] = 0;
+                                position[pCodeTmp-1][i].x=pX;
+                                position[pCodeTmp-1][i].y=pY;
                                 continue;
                             }
                             else if( depth == 1){
@@ -371,9 +357,13 @@ class state{
                         if(checkTime() > timeBound)
                         {
                             contTurn = false;
+                            mat[fire.y][fire.x] = 0;
+                            mat[pY][pX] = pCode;
+                            mat[moveAmazon.y][moveAmazon.x] = 0;
+                            position[pCodeTmp-1][i].x=pX;
+                            position[pCodeTmp-1][i].y=pY;
                             return bestPoint;
                         }
-                        mat[fire.y][fire.x] = -1;
                         node enlistNxt = enlist;
                         if(cutOff){
                             if(depth == 2)
@@ -450,7 +440,7 @@ int main(){
     int i = 1;
     int cntFinal = 0, level = 0;
     node enlist;
-    for(i = 1; i<4 && checkTime()<timeBound && contTurn; i++)
+    for(i = 1; i<20 && checkTime()<timeBound && contTurn; i++)
     {
         stBegin.decideMove(1, i, true, enlist, INT_MIN, INT_MAX, true);
         if(contTurn)
@@ -459,10 +449,10 @@ int main(){
             level++;
             cntFinal = cnt;
             /*cout<<"i : "<< i<<" cnt: "<<cnt<<" t: "<<checkTime()<<endl;
-              cout<<"\n Move selected:-\n";
-              cout<<stBegin.finalMove.y1<<" "<<stBegin.finalMove.x1<<endl;
-              cout<<stBegin.finalMove.y2<<" "<<stBegin.finalMove.x2<<endl;
-              cout<<stBegin.finalMove.f2<<" "<<stBegin.finalMove.f1<<endl;*/
+            cout<<"\n Move selected:-\n";
+            cout<<stBegin.finalMove.y1<<" "<<stBegin.finalMove.x1<<endl;
+            cout<<stBegin.finalMove.y2<<" "<<stBegin.finalMove.x2<<endl;
+            cout<<stBegin.finalMove.f2<<" "<<stBegin.finalMove.f1<<endl;*/
         }
         cnt = 0;
     }
