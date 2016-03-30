@@ -5,7 +5,7 @@
 #include<map>
 #include<vector>
 
-#define timeBound   1.98
+#define timeBound   10.98
 #define alphaBeta   true
 #define cutOff  true
 #define inRange(x, y) ( (x >= 0) && (x < 10) && (y >= 0) && (y < 10) )
@@ -16,9 +16,8 @@
 using namespace std;
 
 clock_t clockStart; 
-long long int cnt;
+long long int cnt, cnt2;
 bool contTurn = true;
-map< int[10][10], float> uniTable;  //To implement transposition table
 
 #define checkTime() ((double)(clock() - clockStart)/ CLOCKS_PER_SEC)
 
@@ -31,22 +30,37 @@ class node{
         map<float, keyNode> arr;
         map<vector<vector<int> >, node> treeRecord;
 
-        void markNodes(bool order, int n=200)
+        void markNodes(bool order, int n=10)
         {
             if(!order){
+                cout<<"***************************\n";
                 map<float, keyNode> :: iterator it = arr.begin();
                 for(int i=0; i<n && it != arr.end(); it++){
+                    cout<<it->first<<" "<<it->second.frequency<<endl;
                     it->second.key = true;
                     i += it->second.frequency;
                 }
             }
             else if(order){
+                cout<<"================================\n";
                 map<float, keyNode> :: iterator it = arr.end();
                 it--;
                 for(int i=0; i<n && it != arr.begin(); it--, i++){
+                    cout<<it->first<<" "<<it->second.frequency<<endl;
                     it->second.key = true;
                     i += it->second.frequency;
                 }
+            }
+        }
+
+        void display()
+        {
+            cout<<"~~~~~~~~~~~~~~~~~~~~\n";
+            map<float, keyNode> :: iterator it = arr.end();
+            it--;
+            for(; it != arr.begin(); it--){
+                if(it->second.key == true)   
+                    cout<<it->first<<" "<<it->second.frequency<<endl;
             }
         }
 }dfNode;
@@ -199,7 +213,7 @@ class state{
                     }
                 }
             //This is to check for directional moves available
-            for(int i=0; i<2; i++)
+            for(int i=0; i<2 && 0; i++){
                 for(int j=0; j<4; j++)
                 {
                     int pX, pY;
@@ -266,11 +280,18 @@ class state{
                     }
                     if(i == 0)  finalValue += cell*2;
                     else    finalValue -= cell*1.5;
+                    //This part will detect the individual area coverage
+                    /*for(int i=0; i<10; i++)
+                      for(int j=0; j<10; j++)
+                      if(mat[i][j] == -2)
+                      mat[i][j] = 0;*/
                 }
-            for(int i=0; i<10; i++)
-                for(int j=0; j<10; j++)
-                    if(mat[i][j] == -2)
-                        mat[i][j] = 0;
+                for(int i=0; i<10; i++)
+                    for(int j=0; j<10; j++)
+                        if(mat[i][j] == -2)
+                            mat[i][j] = 0;
+            }
+
             return finalValue;
         }
 
@@ -310,9 +331,31 @@ class state{
                     while(fire.generate(mat)){
 
                         //To check if state is marked or not
+                        if(depth == 3)
+                        {
+                            cout<<"``````````````~~~~\n";
+                            for(int m=0; m<10; m++){
+                                for(int n=0; n<10; n++)
+                                    cout<<mat[m][n]<<" ";
+                                cout<<endl;
+                            }
+                        }
                         float val = evaluate();
                         if(cutOff){
-                            if( depth>1 && enlist.arr[val].key == false)    continue;
+                            if( depth>1 && enlist.arr[val].key == false){
+                                if(depth == 3)
+                                {
+                                    cout<<"+++++++++++++++++++++++++++++++++++++"<<endl;
+                                    for(int m=0; m<10; m++){
+                                        for(int n=0; n<10; n++)
+                                            cout<<mat[m][n]<<" ";
+                                        cout<<endl;
+                                    }
+                                    cout<<"NOPE~ "<<val;
+                                    //enlist.display();
+                                }
+                                continue;
+                            }
                             else if( depth == 1){
                                 map<float, bool>::iterator it = mappy.begin();
                                 bool detected = false;
@@ -386,7 +429,10 @@ class state{
                 }
             }
             if(depth == 1 && cutOff)
+            {
                 enlist.markNodes(isMaximizer?true:false);
+                //enlist.display();
+            }
             return bestPoint;
         }
 };
@@ -404,7 +450,7 @@ int main(){
     int i = 1;
     int cntFinal = 0, level = 0;
     node enlist;
-    for(i = 1; i<20 && checkTime()<timeBound && contTurn; i++)
+    for(i = 1; i<4 && checkTime()<timeBound && contTurn; i++)
     {
         stBegin.decideMove(1, i, true, enlist, INT_MIN, INT_MAX, true);
         if(contTurn)
