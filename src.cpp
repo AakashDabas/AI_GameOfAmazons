@@ -30,7 +30,7 @@ class node{
         map<float, keyNode> arr;
         map<vector<vector<int> >, node> treeRecord;
 
-        void markNodes(bool order, int n=20)
+        void markNodes(bool order, int n=40)
         {
             if(!order){
                 //cout<<"***************************\n";
@@ -336,10 +336,10 @@ class state{
                         if(cutOff){
                             if( depth>1 && enlist.arr[val].key == false){
                                 mat[fire.y][fire.x] = 0;
-                                mat[pY][pX] = pCode;
+                                /*mat[pY][pX] = pCode;
                                 mat[moveAmazon.y][moveAmazon.x] = 0;
                                 position[pCodeTmp-1][i].x=pX;
-                                position[pCodeTmp-1][i].y=pY;
+                                position[pCodeTmp-1][i].y=pY;*/
                                 continue;
                             }
                             else if( depth == 1){
@@ -440,7 +440,7 @@ int main(){
     int i = 1;
     int cntFinal = 0, level = 0;
     node enlist;
-    for(i = 1; i<20 && checkTime()<timeBound && contTurn; i++)
+    for(i = 1; i<4 && checkTime()<timeBound && contTurn; i++)
     {
         stBegin.decideMove(1, i, true, enlist, INT_MIN, INT_MAX, true);
         if(contTurn)
@@ -448,11 +448,11 @@ int main(){
             stBegin.finalMove = stBegin.moveTmp;
             level++;
             cntFinal = cnt;
-            /*cout<<"i : "<< i<<" cnt: "<<cnt<<" t: "<<checkTime()<<endl;
+            cout<<"i : "<< i<<" cnt: "<<cnt<<" t: "<<checkTime()<<endl;
             cout<<"\n Move selected:-\n";
             cout<<stBegin.finalMove.y1<<" "<<stBegin.finalMove.x1<<endl;
             cout<<stBegin.finalMove.y2<<" "<<stBegin.finalMove.x2<<endl;
-            cout<<stBegin.finalMove.f2<<" "<<stBegin.finalMove.f1<<endl;*/
+            cout<<stBegin.finalMove.f2<<" "<<stBegin.finalMove.f1<<endl;
         }
         cnt = 0;
     }
