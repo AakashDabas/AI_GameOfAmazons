@@ -5,7 +5,7 @@
 #include<map>
 #include<vector>
 
-#define timeBound   10.98
+#define timeBound   100.98
 #define alphaBeta   true
 #define cutOff  true
 #define inRange(x, y) ( (x >= 0) && (x < 10) && (y >= 0) && (y < 10) )
@@ -333,13 +333,24 @@ class state{
                         //To check if state is marked or not
                         mat[fire.y][fire.x] = -1;
                         float val = evaluate();
+                        /*if(depth == 2 && !topMostLevel){
+                            enlist.display();
+                        }*/
                         if(cutOff){
                             if( depth>1 && enlist.arr[val].key == false){
+                                if(depth == 1 && !topMostLevel){
+                                    cout<<"nope";
+                                    cout<<"++++++++++++++++++++\n";
+                                    displayMat();
+                                    cout<<"********************\n";
+                                    int ty;
+                                    cin>>ty;
+                                }
                                 mat[fire.y][fire.x] = 0;
                                 /*mat[pY][pX] = pCode;
-                                mat[moveAmazon.y][moveAmazon.x] = 0;
-                                position[pCodeTmp-1][i].x=pX;
-                                position[pCodeTmp-1][i].y=pY;*/
+                                  mat[moveAmazon.y][moveAmazon.x] = 0;
+                                  position[pCodeTmp-1][i].x=pX;
+                                  position[pCodeTmp-1][i].y=pY;*/
                                 continue;
                             }
                             else if( depth == 1){
@@ -352,6 +363,8 @@ class state{
                                 if(!detected)    enlist.arr[val] = enlist.dfKeyNode;
                                 else    enlist.arr[val].frequency++;
                             }
+                            //if(depth == 2 && !topMostLevel)  cout<<"YUP";
+                            //if(depth==3)    displayMat();
                         }
 
                         if(checkTime() > timeBound)
@@ -410,6 +423,12 @@ class state{
                                 return bestPoint;
                             }
                         }
+                        if(depth == 2 && topMostLevel){
+                            //enlistNxt.display();
+                            enlist.treeRecord[mat] = enlistNxt;
+                            //enlist.treeRecord[mat].display();
+                            //int tmp;cin>>tmp;
+                        }
                         mat[fire.y][fire.x] = 0;
                     }
                     mat[pY][pX] = pCode;
@@ -440,7 +459,7 @@ int main(){
     int i = 1;
     int cntFinal = 0, level = 0;
     node enlist;
-    for(i = 1; i<4 && checkTime()<timeBound && contTurn; i++)
+    for(i = 1; i<30 && checkTime()<timeBound && contTurn; i++)
     {
         stBegin.decideMove(1, i, true, enlist, INT_MIN, INT_MAX, true);
         if(contTurn)
