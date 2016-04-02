@@ -5,7 +5,7 @@
 #include<map>
 #include<vector>
 
-#define timeBound   10.98
+#define timeBound   0.98
 #define alphaBeta   true
 #define cutOff  true
 #define inRange(x, y) ( (x >= 0) && (x < 10) && (y >= 0) && (y < 10) )
@@ -28,41 +28,39 @@ class node{
         map<int, node> treeRecord;
         map<int, bool> stateChk;
 
-        void markNodes(bool order, int n=20)
+        void markNodes(bool order, int n=80)
         {
             if(!order){
-                cout<<"\n----------------------------"<<endl;
+                //cout<<"\n----------------------------"<<endl;
                 map<float, vector<int> > :: iterator it = arr.begin();
                 for(int i=0; it != arr.end(); it++){
-                    if(i < n)
-                        cout<<endl<<it->first<<" : ";
+                    //if(i < n)
+                        //cout<<endl<<it->first<<" : ";
                     if(i < n)
                         while(it->second.empty() == false){
-                            cout<<it->second.back()<<" ";
+                            //cout<<it->second.back()<<" ";
                             stateChk[it->second.front()] = true;
                             it->second.pop_back();
                             i++;
                         }
-                    while(it->second.empty() == false)
-                        it->second.pop_back();
+                    it->second.clear();
                 }
             }
             else if(order){
-                cout<<"\n++++++++++++++++++++++++++++++"<<endl;
-                map<float, vector<int> > :: iterator it = arr.begin();
+                //cout<<"\n++++++++++++++++++++++++++++++"<<endl;
+                map<float, vector<int> > :: iterator it = arr.end();
                 it--;
                 for(int i=0; it != arr.begin(); it--){
-                    if(i < n)
-                        cout<<endl<<it->first<<" : ";
+                    //if(i < n)
+                        //cout<<endl<<it->first<<" : ";
                     if(i < n)
                         while(it->second.empty() == false){
-                            cout<<it->second.back()<<" ";
+                            //cout<<it->second.back()<<" ";
                             stateChk[it->second.front()] = true;
                             it->second.pop_back();
                             i++;
                         }
-                    while(it->second.empty() == false)
-                        it->second.pop_back();
+                    it->second.clear();
                 }
             }
         }
@@ -162,7 +160,6 @@ class state{
         float evaluate()
         {
             float finalValue = 0;
-            return 0;
 
             //This part checks for the proximity for all amazons
             for(int i1=0 ; i1<=1; i1++)
@@ -183,8 +180,8 @@ class state{
                             }
                             else    cell++;
                         }
-                    if(i1 == 0)     finalValue -= cell*3;
-                    else    finalValue += cell*4;
+                    if(i1 == 0)     finalValue -= cell*8;
+                    else    finalValue += cell*12;
                 }
 
             //To check the one move direction cells available
@@ -220,8 +217,8 @@ class state{
                                 y += dirY;
                             }
                         }
-                        if(i == 0)  finalValue += cell*3;
-                        else    finalValue -= cell*4.5;
+                        if(i == 0)  finalValue += cell*10;
+                        else    finalValue -= cell*8;
                     }
                 }
             //This is to check for directional moves available
@@ -292,8 +289,8 @@ class state{
                         }
                     }
                 }
-                if(i == 0)  finalValue += cell*2;
-                else    finalValue -= cell*1.5;
+                if(i == 0)  finalValue += cell*8;
+                else    finalValue -= cell*12;
                 cell = 0;
                 for(int i=0; i<10; i++)
                     for(int j=0; j<10; j++)
@@ -421,7 +418,7 @@ class state{
             }
             if(depth == 1 && cutOff)
             {
-                //enlist.markNodes(isMaximizer?true:false);//, (50)/pow(2, level + 1 - depth));
+                enlist.markNodes(isMaximizer?true:false);//, (50)/pow(2, level + 1 - depth));
                 //enlist.display();
             }
             return bestPoint;
@@ -441,7 +438,7 @@ int main(){
     int i = 1;
     int cntFinal = 0;
     node enlist;
-    for(i = 1; i<3 && checkTime()<timeBound && contTurn; i++)
+    for(i = 1; i<20 && checkTime()<timeBound && contTurn; i++)
     {
         stBegin.decideMove(1, i, true, enlist, INT_MIN, INT_MAX, true);
         if(contTurn)
@@ -449,7 +446,7 @@ int main(){
             stBegin.finalMove = stBegin.moveTmp;
             level++;
             cntFinal = cnt;
-            cout<<"\n i : "<<i<<" time: "<<checkTime()<<" N: "<<cnt<<endl;
+            //cout<<"\n i : "<<i<<" time: "<<checkTime()<<" N: "<<cnt<<endl;
         }
         cnt = 0;
     }
