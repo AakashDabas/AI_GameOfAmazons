@@ -4,7 +4,6 @@
 #include<ctime>
 #include<map>
 #include<vector>
-#include<list>
 
 #define timeBound   10.98
 #define alphaBeta   true
@@ -25,45 +24,45 @@ int level;
 
 class node{
     public:
-        map<float, list<int> > arr;
+        map<float, vector<int> > arr;
         map<int, node> treeRecord;
         map<int, bool> stateChk;
 
-        void markNodes(bool order, int n=10)
+        void markNodes(bool order, int n=20)
         {
             if(!order){
                 cout<<"\n----------------------------"<<endl;
-                map<float, list<int> > :: iterator it = arr.begin();
+                map<float, vector<int> > :: iterator it = arr.begin();
                 for(int i=0; it != arr.end(); it++){
                     if(i < n)
                         cout<<endl<<it->first<<" : ";
                     if(i < n)
                         while(it->second.empty() == false){
-                            cout<<it->second.front()<<" ";
+                            cout<<it->second.back()<<" ";
                             stateChk[it->second.front()] = true;
-                            it->second.pop_front();
+                            it->second.pop_back();
                             i++;
                         }
                     while(it->second.empty() == false)
-                        it->second.pop_front();
+                        it->second.pop_back();
                 }
             }
             else if(order){
                 cout<<"\n++++++++++++++++++++++++++++++"<<endl;
-                map<float, list<int> > :: iterator it = arr.end();
+                map<float, vector<int> > :: iterator it = arr.begin();
                 it--;
                 for(int i=0; it != arr.begin(); it--){
                     if(i < n)
                         cout<<endl<<it->first<<" : ";
                     if(i < n)
                         while(it->second.empty() == false){
-                            cout<<it->second.front()<<" ";
+                            cout<<it->second.back()<<" ";
                             stateChk[it->second.front()] = true;
-                            it->second.pop_front();
+                            it->second.pop_back();
                             i++;
                         }
                     while(it->second.empty() == false)
-                        it->second.pop_front();
+                        it->second.pop_back();
                 }
             }
         }
@@ -163,6 +162,7 @@ class state{
         float evaluate()
         {
             float finalValue = 0;
+            return 0;
 
             //This part checks for the proximity for all amazons
             for(int i1=0 ; i1<=1; i1++)
@@ -343,16 +343,16 @@ class state{
                         //To check if state is marked or not
                         mat[fire.y][fire.x] = -1;
                         stateCnt++;
-                        if(depth == 1 ){
-                            float val = evaluate();
-                            enlist.arr[val].push_back(stateCnt);
+                        if(cutOff){
+                            if(depth == 1 ){
+                                float val = evaluate();
+                                enlist.arr[val].push_back(stateCnt);
+                            }
+                            else if(enlist.stateChk[stateCnt] == true){
+                                mat[fire.y][fire.x] = 0;
+                                continue;
+                            }
                         }
-                        else if(enlist.stateChk[stateCnt] == true){
-                            cout<<"SELECTED : "<<stateCnt<<endl;
-                            mat[fire.y][fire.x] = 0;
-                            continue;
-                        }
-
                         if(checkTime() > timeBound)
                         {
                             contTurn = false;
@@ -361,7 +361,7 @@ class state{
                             mat[moveAmazon.y][moveAmazon.x] = 0;
                             position[pCodeTmp-1][i].x=pX;
                             position[pCodeTmp-1][i].y=pY;
-                            return bestPoint;
+                            return (isMaximizer?INT_MIN:INT_MAX);
                         }
                         node enlistNxt = enlist;
                         if(cutOff){
@@ -411,11 +411,6 @@ class state{
                         }
                         if(depth > 1)
                             enlist.treeRecord[stateCnt] = enlistNxt;
-                        /*if(depth == 3 && level == 3){
-                          enlistNxt.display();
-                          enlist.treeRecord[mat].display();
-                          int tmp;cin>>tmp;
-                          }*/
                         mat[fire.y][fire.x] = 0;
                     }
                     mat[pY][pX] = pCode;
@@ -426,8 +421,8 @@ class state{
             }
             if(depth == 1 && cutOff)
             {
-                enlist.markNodes(isMaximizer?true:false);//, (50)/pow(2, level + 1 - depth));
-                enlist.display();
+                //enlist.markNodes(isMaximizer?true:false);//, (50)/pow(2, level + 1 - depth));
+                //enlist.display();
             }
             return bestPoint;
         }
@@ -454,6 +449,7 @@ int main(){
             stBegin.finalMove = stBegin.moveTmp;
             level++;
             cntFinal = cnt;
+            cout<<"\n i : "<<i<<" time: "<<checkTime()<<" N: "<<cnt<<endl;
         }
         cnt = 0;
     }
