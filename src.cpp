@@ -4,8 +4,9 @@
 #include<ctime>
 #include<map>
 #include<vector>
+#include<list>
 
-#define timeBound   100.98
+#define timeBound   10.98
 #define alphaBeta   true
 #define cutOff  true
 #define inRange(x, y) ( (x >= 0) && (x < 10) && (y >= 0) && (y < 10) )
@@ -18,51 +19,62 @@ using namespace std;
 clock_t clockStart; 
 long long int cnt, cnt2;
 bool contTurn = true;
+int level;
 
 #define checkTime() ((double)(clock() - clockStart)/ CLOCKS_PER_SEC)
 
 class node{
     public:
-        struct keyNode{
-            int frequency = 0;
-            bool key = false;
-        }dfKeyNode;
-        map<float, keyNode> arr;
-        map<vector<vector<int> >, node> treeRecord;
+        map<float, list<int> > arr;
+        map<int, node> treeRecord;
+        map<int, bool> stateChk;
 
-        void markNodes(bool order, int n=40)
+        void markNodes(bool order, int n=10)
         {
             if(!order){
-                //cout<<"***************************\n";
-                map<float, keyNode> :: iterator it = arr.begin();
-                for(int i=0; i<n && it != arr.end(); it++){
-                    //cout<<it->first<<" "<<it->second.frequency<<endl;
-                    it->second.key = true;
-                    i += it->second.frequency;
+                cout<<"\n----------------------------"<<endl;
+                map<float, list<int> > :: iterator it = arr.begin();
+                for(int i=0; it != arr.end(); it++){
+                    if(i < n)
+                        cout<<endl<<it->first<<" : ";
+                    if(i < n)
+                        while(it->second.empty() == false){
+                            cout<<it->second.front()<<" ";
+                            stateChk[it->second.front()] = true;
+                            it->second.pop_front();
+                            i++;
+                        }
+                    while(it->second.empty() == false)
+                        it->second.pop_front();
                 }
             }
             else if(order){
-                //cout<<"================================\n";
-                map<float, keyNode> :: iterator it = arr.end();
+                cout<<"\n++++++++++++++++++++++++++++++"<<endl;
+                map<float, list<int> > :: iterator it = arr.end();
                 it--;
-                for(int i=0; i<n && it != arr.begin(); it--, i++){
-                    //cout<<it->first<<" "<<it->second.frequency<<endl;
-                    it->second.key = true;
-                    i += it->second.frequency;
+                for(int i=0; it != arr.begin(); it--){
+                    if(i < n)
+                        cout<<endl<<it->first<<" : ";
+                    if(i < n)
+                        while(it->second.empty() == false){
+                            cout<<it->second.front()<<" ";
+                            stateChk[it->second.front()] = true;
+                            it->second.pop_front();
+                            i++;
+                        }
+                    while(it->second.empty() == false)
+                        it->second.pop_front();
                 }
             }
         }
-
-        void display()
-        {
-            cout<<"~~~~~~~~~~~~~~~~~~~~\n";
-            map<float, keyNode> :: iterator it = arr.end();
-            it--;
-            for(; it != arr.begin(); it--){
-                if(it->second.key == true)   
-                    cout<<it->first<<" "<<it->second.frequency<<endl;
-            }
+        void display(){
+            cout<<"\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n";
+            for(int i=0; i<2200; i++)
+                if(stateChk[i] == true)
+                    cout<<i<<" ";
+            cout<<endl;
         }
+
 }dfNode;
 
 class state{
@@ -171,8 +183,8 @@ class state{
                             }
                             else    cell++;
                         }
-                    if(i1 == 0)     finalValue -= cell*cell*3;
-                    else    finalValue += cell*cell*4;
+                    if(i1 == 0)     finalValue -= cell*3;
+                    else    finalValue += cell*4;
                 }
 
             //To check the one move direction cells available
@@ -213,13 +225,14 @@ class state{
                     }
                 }
             //This is to check for directional moves available
-            for(int i=0; i<2 && 0; i++){
+            int cell = 0;
+            for(int i=0; i<2 ; i++){
                 for(int j=0; j<4; j++)
                 {
                     int pX, pY;
                     pX = position[i][j].x;
                     pY = position[i][j].y;
-                    int dirX, dirY, x, y, cell = 0;
+                    int dirX, dirY, x, y;
                     x = pX;
                     y = pY;
                     dirX = dirY = -1;
@@ -278,14 +291,10 @@ class state{
                             }
                         }
                     }
-                    if(i == 0)  finalValue += cell*2;
-                    else    finalValue -= cell*1.5;
-                    //This part will detect the individual area coverage
-                    /*for(int i=0; i<10; i++)
-                      for(int j=0; j<10; j++)
-                      if(mat[i][j] == -2)
-                      mat[i][j] = 0;*/
                 }
+                if(i == 0)  finalValue += cell*2;
+                else    finalValue -= cell*1.5;
+                cell = 0;
                 for(int i=0; i<10; i++)
                     for(int j=0; j<10; j++)
                         if(mat[i][j] == -2)
@@ -314,6 +323,7 @@ class state{
                 return evaluate();//Returns leaf node heuristic value
             }
 
+            int stateCnt = 0;
             for(int i=0; i<4; i++){
 
                 int pX = position[pCode-1][i].x;
@@ -332,39 +342,15 @@ class state{
 
                         //To check if state is marked or not
                         mat[fire.y][fire.x] = -1;
-                        float val = evaluate();
-                        /*if(depth == 2 && !topMostLevel){
-                            enlist.display();
-                        }*/
-                        if(cutOff){
-                            if( depth>1 && enlist.arr[val].key == false){
-                                if(depth == 1 && !topMostLevel){
-                                    cout<<"nope";
-                                    cout<<"++++++++++++++++++++\n";
-                                    displayMat();
-                                    cout<<"********************\n";
-                                    int ty;
-                                    cin>>ty;
-                                }
-                                mat[fire.y][fire.x] = 0;
-                                /*mat[pY][pX] = pCode;
-                                  mat[moveAmazon.y][moveAmazon.x] = 0;
-                                  position[pCodeTmp-1][i].x=pX;
-                                  position[pCodeTmp-1][i].y=pY;*/
-                                continue;
-                            }
-                            else if( depth == 1){
-                                map<float, bool>::iterator it = mappy.begin();
-                                bool detected = false;
-                                for(; it != mappy.end() && !detected; it++)
-                                    if(it->first == val)
-                                        detected = true;
-                                mappy[val] = true;
-                                if(!detected)    enlist.arr[val] = enlist.dfKeyNode;
-                                else    enlist.arr[val].frequency++;
-                            }
-                            //if(depth == 2 && !topMostLevel)  cout<<"YUP";
-                            //if(depth==3)    displayMat();
+                        stateCnt++;
+                        if(depth == 1 ){
+                            float val = evaluate();
+                            enlist.arr[val].push_back(stateCnt);
+                        }
+                        else if(enlist.stateChk[stateCnt] == true){
+                            cout<<"SELECTED : "<<stateCnt<<endl;
+                            mat[fire.y][fire.x] = 0;
+                            continue;
                         }
 
                         if(checkTime() > timeBound)
@@ -380,9 +366,9 @@ class state{
                         node enlistNxt = enlist;
                         if(cutOff){
                             if(depth == 2)
-                                enlist.treeRecord[mat] = dfNode;
+                                enlist.treeRecord[stateCnt] = dfNode;
                             if(depth == 1)     enlistNxt = enlist;
-                            else    enlistNxt = enlist.treeRecord[mat];
+                            else    enlistNxt = enlist.treeRecord[stateCnt];
                         }
 
                         if(isMaximizer)     //Maximizer layer
@@ -423,12 +409,13 @@ class state{
                                 return bestPoint;
                             }
                         }
-                        if(depth == 2 && topMostLevel){
-                            //enlistNxt.display();
-                            enlist.treeRecord[mat] = enlistNxt;
-                            //enlist.treeRecord[mat].display();
-                            //int tmp;cin>>tmp;
-                        }
+                        if(depth > 1)
+                            enlist.treeRecord[stateCnt] = enlistNxt;
+                        /*if(depth == 3 && level == 3){
+                          enlistNxt.display();
+                          enlist.treeRecord[mat].display();
+                          int tmp;cin>>tmp;
+                          }*/
                         mat[fire.y][fire.x] = 0;
                     }
                     mat[pY][pX] = pCode;
@@ -439,8 +426,8 @@ class state{
             }
             if(depth == 1 && cutOff)
             {
-                enlist.markNodes(isMaximizer?true:false);
-                //enlist.display();
+                enlist.markNodes(isMaximizer?true:false);//, (50)/pow(2, level + 1 - depth));
+                enlist.display();
             }
             return bestPoint;
         }
@@ -457,9 +444,9 @@ int main(){
     state stBegin;
     stBegin.initialize(mat);
     int i = 1;
-    int cntFinal = 0, level = 0;
+    int cntFinal = 0;
     node enlist;
-    for(i = 1; i<30 && checkTime()<timeBound && contTurn; i++)
+    for(i = 1; i<3 && checkTime()<timeBound && contTurn; i++)
     {
         stBegin.decideMove(1, i, true, enlist, INT_MIN, INT_MAX, true);
         if(contTurn)
@@ -467,11 +454,6 @@ int main(){
             stBegin.finalMove = stBegin.moveTmp;
             level++;
             cntFinal = cnt;
-            cout<<"i : "<< i<<" cnt: "<<cnt<<" t: "<<checkTime()<<endl;
-            cout<<"\n Move selected:-\n";
-            cout<<stBegin.finalMove.y1<<" "<<stBegin.finalMove.x1<<endl;
-            cout<<stBegin.finalMove.y2<<" "<<stBegin.finalMove.x2<<endl;
-            cout<<stBegin.finalMove.f2<<" "<<stBegin.finalMove.f1<<endl;
         }
         cnt = 0;
     }
