@@ -5,7 +5,7 @@
 #include<map>
 #include<vector>
 
-#define timeBound   0.98
+#define timeBound   1000.98
 #define alphaBeta   true
 #define cutOff  true
 #define inRange(x, y) ( (x >= 0) && (x < 10) && (y >= 0) && (y < 10) )
@@ -19,6 +19,7 @@ clock_t clockStart;
 long long int cnt, cnt2;
 bool contTurn = true;
 int level;
+long long int cntStates;
 
 #define checkTime() ((double)(clock() - clockStart)/ CLOCKS_PER_SEC)
 
@@ -28,14 +29,14 @@ class node{
         map<int, node> treeRecord;
         map<int, bool> stateChk;
 
-        void markNodes(bool order, int n=80)
+        void markNodes(bool order, int n=20)
         {
             if(!order){
                 //cout<<"\n----------------------------"<<endl;
                 map<float, vector<int> > :: iterator it = arr.begin();
                 for(int i=0; it != arr.end(); it++){
                     //if(i < n)
-                        //cout<<endl<<it->first<<" : ";
+                    //cout<<endl<<it->first<<" : ";
                     if(i < n)
                         while(it->second.empty() == false){
                             //cout<<it->second.back()<<" ";
@@ -56,7 +57,7 @@ class node{
                     if(i < n)
                         while(it->second.empty() == false){
                             //cout<<it->second.back()<<" ";
-                            stateChk[it->second.front()] = true;
+                            stateChk[it->second.back()] = true;
                             it->second.pop_back();
                             i++;
                         }
@@ -66,7 +67,7 @@ class node{
         }
         void display(){
             cout<<"\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n";
-            for(int i=0; i<2200; i++)
+            for(int i=0; i<2000; i++)
                 if(stateChk[i] == true)
                     cout<<i<<" ";
             cout<<endl;
@@ -216,14 +217,16 @@ class state{
                                 x += dirX;
                                 y += dirY;
                             }
+                            else    continue;
                         }
-                        if(i == 0)  finalValue += cell*10;
-                        else    finalValue -= cell*8;
+                        cell++;
                     }
+                    if(i == 0)  finalValue += cell*10;
+                    else    finalValue -= cell*8;
                 }
             //This is to check for directional moves available
             int cell = 0;
-            for(int i=0; i<2 ; i++){
+            for(int i=0; i<2 && 0; i++){
                 for(int j=0; j<4; j++)
                 {
                     int pX, pY;
@@ -341,14 +344,20 @@ class state{
                         mat[fire.y][fire.x] = -1;
                         stateCnt++;
                         if(cutOff){
+                            int i = stateCnt;
                             if(depth == 1 ){
                                 float val = evaluate();
                                 enlist.arr[val].push_back(stateCnt);
                             }
-                            else if(enlist.stateChk[stateCnt] == true){
+                            else if(enlist.stateChk[i] == false){
                                 mat[fire.y][fire.x] = 0;
                                 continue;
                             }
+                            cntStates++;
+                            /*if(depth == 2 ){
+                                cout<<depth << " * "<< stateCnt;
+                                cout<<" $ "<<enlist.stateChk.count(stateCnt) <<endl;
+                            }*/
                         }
                         if(checkTime() > timeBound)
                         {
@@ -438,7 +447,7 @@ int main(){
     int i = 1;
     int cntFinal = 0;
     node enlist;
-    for(i = 1; i<20 && checkTime()<timeBound && contTurn; i++)
+    for(i = 1; i<4 && checkTime()<timeBound && contTurn; i++)
     {
         stBegin.decideMove(1, i, true, enlist, INT_MIN, INT_MAX, true);
         if(contTurn)
@@ -446,7 +455,7 @@ int main(){
             stBegin.finalMove = stBegin.moveTmp;
             level++;
             cntFinal = cnt;
-            //cout<<"\n i : "<<i<<" time: "<<checkTime()<<" N: "<<cnt<<endl;
+            cout<<"\n i : "<<i<<" time: "<<checkTime()<<" N: "<<cnt<<endl;
         }
         cnt = 0;
     }
