@@ -5,8 +5,8 @@
 #include<map>
 #include<vector>
 
-#define timeBound   1000.98
-#define alphaBeta   true
+#define timeBound   0.98
+#define alphaBeta   false
 #define cutOff  true
 #define inRange(x, y) ( (x >= 0) && (x < 10) && (y >= 0) && (y < 10) )
 #define loop2(itr1, itr2, lim1, lim2) for(; itr1 < lim1; itr1++)  for(; itr2 < lim2; itr2++)
@@ -29,14 +29,14 @@ class node{
         map<int, node> treeRecord;
         map<int, bool> stateChk;
 
-        void markNodes(bool order, int n=20)
+        void markNodes(bool order, int n=10)
         {
             if(!order){
                 //cout<<"\n----------------------------"<<endl;
                 map<float, vector<int> > :: iterator it = arr.begin();
                 for(int i=0; it != arr.end(); it++){
                     //if(i < n)
-                    //cout<<endl<<it->first<<" : ";
+                        //cout<<endl<<it->first<<" : ";
                     if(i < n)
                         while(it->second.empty() == false){
                             //cout<<it->second.back()<<" ";
@@ -221,12 +221,12 @@ class state{
                         }
                         cell++;
                     }
-                    if(i == 0)  finalValue += cell*10;
-                    else    finalValue -= cell*8;
+                    if(i == 0)  finalValue += cell*8;
+                    else    finalValue -= cell*12;
                 }
             //This is to check for directional moves available
             int cell = 0;
-            for(int i=0; i<2 && 0; i++){
+            for(int i=0; i<2 ; i++){
                 for(int j=0; j<4; j++)
                 {
                     int pX, pY;
@@ -238,7 +238,7 @@ class state{
                     dirX = dirY = -1;
                     while(1)
                     {
-                        if(inRange(dirX + x, dirY + y) && mat[dirY + y][dirX + x] == 0) {
+                        if(inRange(dirX + x, dirY + y) && (mat[dirY + y][dirX + x] == 0 || mat[dirY + y][dirX + x] == -2 )) {
                             x += dirX;
                             y += dirY;
                         }
@@ -253,18 +253,20 @@ class state{
                             else if(dirX == 0 && dirY == 1)  dirX = -1;
                             else if(dirX == -1 && dirY == 1)  dirY = 0;
                             else  break;
-                            if(inRange(dirX + x, dirY + y) && mat[dirY + y][dirX + x] == 0) {
+                            if(inRange(dirX + x, dirY + y) && (mat[dirY + y][dirX + x] == 0 || mat[dirY + y][dirX + x] == -2 )) {
                                 x += dirX;
                                 y += dirY;
                             }
+                            else    continue;
                         }
                         int x2, y2;
                         int dirX2 = -1, dirY2 = -1;
                         x2 = x;
                         y2 = y;
+                        mat[y2][x2] = -2;
                         while(1)
                         {
-                            if(inRange(dirX2 + x2, dirY2 + y2) && mat[dirY2 + y2][dirX2 + x2] == 0) {
+                            if(inRange(dirX2 + x2, dirY2 + y2) && (mat[dirY2 + y2][dirX2 + x2] == 0 || mat[dirY2 + y2][dirX2 + x2] == -2)) {
                                 x2 += dirX2;
                                 y2 += dirY2;
                             }
@@ -279,16 +281,18 @@ class state{
                                 else if(dirX2 == 0 && dirY2 == 1)  dirX2 = -1;
                                 else if(dirX2 == -1 && dirY2 == 1)  dirY2 = 0;
                                 else  break;
-                                if(inRange(dirX2 + x2, dirY2 + y2) && mat[dirY2 + y2][dirX2 + x2] == 0) {
+                                if(inRange(dirX2 + x2, dirY2 + y2) && (mat[dirY2 + y2][dirX2 + x2] == 0 || mat[dirY2 + y2][dirX2 + x2] == -2)) {
                                     x2 += dirX2;
                                     y2 += dirY2;
                                 }
+                                else    continue;
                             }
                             if(mat[y2][x2] == 0)
                             {
                                 cell++;
                                 mat[y2][x2] = -2;
                             }
+                            else    continue;
                         }
                     }
                 }
@@ -355,7 +359,7 @@ class state{
                             }
                             cntStates++;
                             /*if(depth == 2 ){
-                                cout<<depth << " * "<< stateCnt;
+                                cout<<"\n"<<depth << " * "<< stateCnt;
                                 cout<<" $ "<<enlist.stateChk.count(stateCnt) <<endl;
                             }*/
                         }
@@ -447,7 +451,7 @@ int main(){
     int i = 1;
     int cntFinal = 0;
     node enlist;
-    for(i = 1; i<4 && checkTime()<timeBound && contTurn; i++)
+    for(i = 1; i<3 && checkTime()<timeBound && contTurn; i++)
     {
         stBegin.decideMove(1, i, true, enlist, INT_MIN, INT_MAX, true);
         if(contTurn)
@@ -455,7 +459,7 @@ int main(){
             stBegin.finalMove = stBegin.moveTmp;
             level++;
             cntFinal = cnt;
-            cout<<"\n i : "<<i<<" time: "<<checkTime()<<" N: "<<cnt<<endl;
+            //cout<<"\n i : "<<i<<" time: "<<checkTime()<<" N: "<<cnt<<endl;
         }
         cnt = 0;
     }
