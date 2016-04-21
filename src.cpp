@@ -11,7 +11,7 @@
 #define cutOff  true
 #define inRange(x, y) ( (x >= 0) && (x < 10) && (y >= 0) && (y < 10) )
 #define loop2(itr1, itr2, lim1, lim2) for(; itr1 < lim1; itr1++)  for(; itr2 < lim2; itr2++)
-#define displayMat(matPr)  for(int itr1=0; itr1<10; itr1++)    {for(int itr2=0; itr2<10; itr2++)    cout<<matPr[itr1][itr2]<<" ";     cout<<endl;}
+#define displayMat(matPr)  for(int itr1=0; itr1<10; itr1++)    {for(int itr2=0; itr2<10; itr2++)    if(matPr[itr1][itr2] == -1)     cout << "x"; else if(matPr[itr1][itr2] == 1) cout << "o";    else if(matPr[itr1][itr2] == 2)    cout << "c"; else   cout << ".";     cout<<endl;}
 #define checkMap(mappy, val)    (mappy.find(val)) != mappy.end()
 
 using namespace std;
@@ -191,7 +191,7 @@ class state{
             return count;
         }
 
-        float calcRegion(){
+        float calcRegion(bool dis = false){
             int cnt_ = 0, cnt__ = 0;
             matPoint matPt__;
             matPt__.own = -1;
@@ -269,7 +269,7 @@ class state{
                         else if(dirX == 0 && dirY == 1)  dirX = -1, dir = 4;
                         else if(dirX == -1 && dirY == 1)  dirY = 0, dir = 8;
                         else  break;
-                        if(inRange(dirX + x, dirY + y) && (matTmp[dirY + y][dirX + x].dir[stTmp.flag] & dir) == 0 && mat[dirX + x][dirY + y] == 0) {
+                        if(inRange(dirX + x, dirY + y) && (matTmp[dirY + y][dirX + x].dir[stTmp.flag] & dir) == 0 && mat[dirY + y][dirX + x] == 0) {
                             x += dirX;
                             y += dirY;
                         }
@@ -327,25 +327,39 @@ class state{
             }*/
             //cout << "H: "<<cntH << "V: "<< cntV<< endl;
             //cout << "CNT1: " << cnt_ << " CNT2: " << cnt__ << endl;
+
+            int cntH = 0, cntV = 0;
             vector<vector<bool> >ref(10, vector<bool>(10, false));
             int scr[2] = {0, 0};
             for(int i = 0; i < 10; i++){
                 for(int j = 0; j < 10; j++){
                     int own = matTmp[i][j].own;
+                    if(dis){
+                        if(own == 0)    cout << "+";
+                        else if(own == 1)   cout << "-";
+                        else if(own == 2)   cout << "o";
+                        else    cout << ".";
+                    }
                     if(own <= 1){
+                        if(own == 0)    cntH++;
+                        else if(own == 1)   cntV++;
                         ref[i][j] = true;
                         int val = calcConnectedRegion(i, j, own, matTmp, ref) + 1;
                         if(val > scr[own])  scr[own] = val;
                     }
                 }
+                if(dis) cout << endl;
             }
-            //cout << "HERO: " << scr[0] << "  Vellion: " << scr[1];
+            if(dis){
+                cout << "HERO: " << scr[0] << "  Vellion: " << scr[1] << endl;
+                cout << "cntH: " << cntH << " cntV: " << cntV << endl;
+            }
             //int tmp; cin >> tmp;
             //return cntH * 10 - cntV * 8;
-            return scr[0] * 10 - scr[1] * 8;
+            return scr[0] * 10 - scr[1] * 8 + cntH * 2 - cntV * 2;
         }
 
-        float evaluate(){
+        float evaluate(bool dis = false){
             float finalValue = 0;
 
             //This part checks for the proximity for all amazons
@@ -372,7 +386,7 @@ class state{
                 }
 
             //To check the one move direction cells available
-            for(int i=0; i<2; i++)
+            for(int i=0; i<2 && 0; i++)
                 for(int j=0; j<4; j++)
                 {
                     int pX, pY;
@@ -410,13 +424,13 @@ class state{
                     if(i == 0)  finalValue += cell*8;
                     else    finalValue -= cell*12;
                 }
-            finalValue += calcRegion();
-            cout << checkTime() << " " << cnt << endl;
+            finalValue += calcRegion(dis);
             return finalValue;
         }
 
         float decideMove(int pCode, int depth, bool isMaximizer, node &enlist, int alpha = INT_MIN, int beta = INT_MAX, bool topMostLevel = false){
 
+            //evaluate(true);int tmp;cin>>tmp;
             /*int i = 0;
             while(checkTime() < timeBound)
                 evaluate(), i++;
@@ -466,10 +480,13 @@ class state{
                                 continue;
                             }
                             cntStates++;
-                            /*if(depth == 2 ){
-                              cout<<"\n"<<depth << " * "<< stateCnt;
-                              cout<<" $ "<<enlist.stateChk.count(stateCnt) <<endl;
-                              }*/
+                            if(depth > 1 && 0){
+                                if(isMaximizer) cout << "++++++++++++++++++++\n";
+                                else    cout << "----------------------\n";
+                                displayMat(mat);
+                                cout << "\n\n";
+                                cout << evaluate(true);
+                            }
                         }
                         if(checkTime() > timeBound)
                         {
@@ -565,7 +582,7 @@ int main(){
     int cntFinal = 0;
     node enlist;
     clock_t begin = clock();
-    for(i = 1; i<2 && checkTime()<timeBound && contTurn; i++)
+    for(i = 1; i<3 && checkTime()<timeBound && contTurn; i++)
     {
         stBegin.decideMove(1, i, true, enlist, INT_MIN, INT_MAX, true);
         if(contTurn)
