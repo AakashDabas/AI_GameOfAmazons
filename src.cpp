@@ -4,24 +4,28 @@
 #include<ctime>
 #include<map>
 #include<vector>
+#include<deque>
 
-#define timeBound   0.98
-#define alphaBeta   false
+#define timeBound   0.95
+#define alphaBeta   true
 #define cutOff  true
 #define inRange(x, y) ( (x >= 0) && (x < 10) && (y >= 0) && (y < 10) )
 #define loop2(itr1, itr2, lim1, lim2) for(; itr1 < lim1; itr1++)  for(; itr2 < lim2; itr2++)
-#define displayMat()  for(int itr1=0; itr1<10; itr1++)    {for(int itr2=0; itr2<10; itr2++)    cout<<mat[itr1][itr2]<<" ";     cout<<endl;}
+#define displayMat(matPr)  for(int itr1=0; itr1<10; itr1++)    {for(int itr2=0; itr2<10; itr2++)    cout<<matPr[itr1][itr2]<<" ";     cout<<endl;}
 #define checkMap(mappy, val)    (mappy.find(val)) != mappy.end()
 
 using namespace std;
 
 clock_t clockStart; 
-long long int cnt, cnt2;
+long long int cnt, cnt2, cntStates;
 bool contTurn = true;
 int level;
-long long int cntStates;
 
 #define checkTime() ((double)(clock() - clockStart)/ CLOCKS_PER_SEC)
+
+struct dir{
+    bool dir1, dir2, dir3, dir4, dir5, dir6, dir7, dir8;
+};
 
 class node{
     public:
@@ -36,7 +40,7 @@ class node{
                 map<float, vector<int> > :: iterator it = arr.begin();
                 for(int i=0; it != arr.end(); it++){
                     //if(i < n)
-                        //cout<<endl<<it->first<<" : ";
+                    //cout<<endl<<it->first<<" : ";
                     if(i < n)
                         while(it->second.empty() == false){
                             //cout<<it->second.back()<<" ";
@@ -53,7 +57,7 @@ class node{
                 it--;
                 for(int i=0; it != arr.begin(); it--){
                     //if(i < n)
-                        //cout<<endl<<it->first<<" : ";
+                    //cout<<endl<<it->first<<" : ";
                     if(i < n)
                         while(it->second.empty() == false){
                             //cout<<it->second.back()<<" ";
@@ -114,7 +118,8 @@ class state{
                     yOriginal = y;
                     dirX = dirY = -1;
                 }
-                bool generate(vector<vector<int> > mat){
+
+                inline bool generate(vector<vector<int> >& mat){
                     if(inRange(dirX + x, dirY + y) && mat[dirY + y][dirX + x] == 0) {
                         x += dirX;
                         y += dirY;
@@ -158,8 +163,161 @@ class state{
                 }
         }
 
-        float evaluate()
-        {
+        class stPoint{
+            public:
+                int x, y;
+                int flag;
+                int cnt;
+        };
+
+        class matPoint{
+            public:
+                int own = -1;
+                int steps = 1000;
+                int dir[3] = {0, 0, 0};
+        };
+
+        float calcRegion(){
+            int cnt_ = 0, cnt__ = 0;
+            matPoint matPt__;
+            matPt__.own = -1;
+            matPt__.steps = 1000;
+            vector<vector<matPoint> > matTmp(10, vector<matPoint>(10, matPt__));
+            deque<stPoint> buffer;
+            for(int i1=0 ; i1<=1; i1++)
+                for(int i2=0; i2<=3; i2++)
+                {
+                    stPoint stTmp;
+                    stTmp.x = position[i1][i2].x;
+                    stTmp.y = position[i1][i2].y;
+                    if(i1 == 0)  stTmp.flag = 0;
+                    else    stTmp.flag = 1;
+                    stTmp.cnt = 0;
+                    buffer.push_back(stTmp);
+                }
+            while(buffer.empty() == false)
+            {
+                int pX, pY;
+                stPoint stTmp = buffer.front();
+                buffer.pop_front();
+                pX = stTmp.x;
+                pY = stTmp.y;
+                int dir = 1;
+                int dirX, dirY, x, y, cell = 0;
+                x = pX;
+                y = pY;
+                dirX = dirY = -1;
+                if(stTmp.flag <= 1 && matTmp[y][x].own == 2){
+                    //cout << "SKIPPED\n";
+                    //cout << "OWNED : " << stTmp.flag << endl;
+                    continue;//Checks if this cell still belongs to the first element or not;
+                }
+                /*int cntH = 0, cntV = 0;
+                cout << "OWNED : " << stTmp.flag << endl;
+                cout << "Y : " << y << " X : "<< x<< endl;
+                for(int i = 0; i < 10; i++){
+                    for(int j = 0; j < 10; j++){
+                        if( i == y && j == x)   cout << "&";
+                        else if(matTmp[i][j].own == 0){
+                            cntH++;
+                            cout << "+";
+                        }
+                        else if(matTmp[i][j].own == 1){
+                            cntV++;
+                            cout << "-";
+                        }
+                        else if(matTmp[i][j].own == 2)    cout << "o";
+                        else    cout << ".";
+                        cout << " ";
+                    }
+                    cout << endl;
+                }
+                cout << "H : "<< cntH << "V : "<< cntV;
+                cout << "CNT1: "<<cnt_<<" CNT2: "<<cnt__ << endl;
+                cnt_ = cnt__ = 0;
+                int tmp__;
+                cin >> tmp__;*/
+                while(1)
+                {
+                    cnt_++;
+                    if(inRange(dirX + x, dirY + y) && (matTmp[dirY + y][dirX + x].dir[stTmp.flag] & dir) == 0 && mat[dirY + y][dirX + x] == 0){
+                        x += dirX;
+                        y += dirY;
+                    }
+                    else{
+                        x = pX;
+                        y = pY;
+                        if(dirX == -1 && dirY == -1)  dirX = 0, dir = 2;
+                        else if(dirX == 0 && dirY == -1)  dirX = 1, dir = 4;
+                        else if(dirX == 1 && dirY == -1)  dirY = 0, dir = 8;
+                        else if(dirX == 1 && dirY == 0)  dirY = 1, dir = 1;
+                        else if(dirX == 1 && dirY == 1)  dirX = 0, dir = 2;
+                        else if(dirX == 0 && dirY == 1)  dirX = -1, dir = 4;
+                        else if(dirX == -1 && dirY == 1)  dirY = 0, dir = 8;
+                        else  break;
+                        if(inRange(dirX + x, dirY + y) && (matTmp[dirY + y][dirX + x].dir[stTmp.flag] & dir) == 0 && mat[dirX + x][dirY + y] == 0) {
+                            x += dirX;
+                            y += dirY;
+                        }
+                        else    continue;
+                    }
+                    cnt__++;
+                    matPoint matPt_ = matTmp[y][x];
+                    stPoint stTmp_ = stTmp;
+                    stTmp_.x = x;
+                    stTmp_.y = y;
+                    if(stTmp.flag == 0){
+                        stTmp_.cnt++;
+                        if(matPt_.own == -1){
+                            matPt_.steps = stTmp.cnt + 1;
+                            matPt_.own = 0;
+                            buffer.push_back(stTmp_);
+                        }
+                        matPt_.dir[0] |= dir;
+                    }
+                    else if(stTmp.flag == 1){
+                        //cout << matPt_.steps << " " << stTmp.cnt << endl;
+                        bool flag_ = false;
+                        if(matPt_.steps >= stTmp.cnt + 1 && matPt_.own == 0)
+                            matPt_.own = 2;
+                        else if(matPt_.own == -1)    matPt_.own = 1, flag_ = true;
+                        matPt_.dir[0] |= dir;
+                        matPt_.dir[1] |= dir;
+                        stTmp_.cnt++;
+                        if(flag_){
+                            matPt_.steps = stTmp.cnt + 1;
+                            buffer.push_back(stTmp_);
+                        }
+                    }
+                    matTmp[y][x] = matPt_;
+                }
+            }
+
+            int cntH = 0, cntV = 0;
+            //cout << endl;
+            for(int i = 0; i < 10; i++){
+                for(int j = 0; j < 10; j++){
+                    if(matTmp[i][j].own == 0){
+                        cntH++;
+                        //cout << "+";
+                    }
+                    else if(matTmp[i][j].own == 1){
+                        cntV++;
+                        //cout << "-";
+                    }
+                    //else if(matTmp[i][j].own == 2)   cout << "o";
+                    //else    cout << ".";
+                    //cout << " ";
+                }
+                //cout << endl;
+            }
+            //cout << "H: "<<cntH << "V: "<< cntV<< endl;
+            //cout << "CNT1: " << cnt_ << " CNT2: " << cnt__ << endl;
+            //int tmp; cin >> tmp;
+            return cntH * 10 - cntV * 8;
+        }
+
+        float evaluate(){
             float finalValue = 0;
 
             //This part checks for the proximity for all amazons
@@ -224,92 +382,17 @@ class state{
                     if(i == 0)  finalValue += cell*8;
                     else    finalValue -= cell*12;
                 }
-            //This is to check for directional moves available
-            int cell = 0;
-            for(int i=0; i<2 ; i++){
-                for(int j=0; j<4; j++)
-                {
-                    int pX, pY;
-                    pX = position[i][j].x;
-                    pY = position[i][j].y;
-                    int dirX, dirY, x, y;
-                    x = pX;
-                    y = pY;
-                    dirX = dirY = -1;
-                    while(1)
-                    {
-                        if(inRange(dirX + x, dirY + y) && (mat[dirY + y][dirX + x] == 0 || mat[dirY + y][dirX + x] == -2 )) {
-                            x += dirX;
-                            y += dirY;
-                        }
-                        else{
-                            x = pX;
-                            y = pY;
-                            if(dirX == -1 && dirY == -1)  dirX = 0;
-                            else if(dirX == 0 && dirY == -1)  dirX = 1;
-                            else if(dirX == 1 && dirY == -1)  dirY = 0;
-                            else if(dirX == 1 && dirY == 0)  dirY = 1;
-                            else if(dirX == 1 && dirY == 1)  dirX = 0;
-                            else if(dirX == 0 && dirY == 1)  dirX = -1;
-                            else if(dirX == -1 && dirY == 1)  dirY = 0;
-                            else  break;
-                            if(inRange(dirX + x, dirY + y) && (mat[dirY + y][dirX + x] == 0 || mat[dirY + y][dirX + x] == -2 )) {
-                                x += dirX;
-                                y += dirY;
-                            }
-                            else    continue;
-                        }
-                        int x2, y2;
-                        int dirX2 = -1, dirY2 = -1;
-                        x2 = x;
-                        y2 = y;
-                        mat[y2][x2] = -2;
-                        while(1)
-                        {
-                            if(inRange(dirX2 + x2, dirY2 + y2) && (mat[dirY2 + y2][dirX2 + x2] == 0 || mat[dirY2 + y2][dirX2 + x2] == -2)) {
-                                x2 += dirX2;
-                                y2 += dirY2;
-                            }
-                            else{
-                                x2 = x;
-                                y2 = y;
-                                if(dirX2 == -1 && dirY2 == -1)  dirX2 = 0;
-                                else if(dirX2 == 0 && dirY2 == -1)  dirX2 = 1;
-                                else if(dirX2 == 1 && dirY2 == -1)  dirY2 = 0;
-                                else if(dirX2 == 1 && dirY2 == 0)  dirY2 = 1;
-                                else if(dirX2 == 1 && dirY2 == 1)  dirX2 = 0;
-                                else if(dirX2 == 0 && dirY2 == 1)  dirX2 = -1;
-                                else if(dirX2 == -1 && dirY2 == 1)  dirY2 = 0;
-                                else  break;
-                                if(inRange(dirX2 + x2, dirY2 + y2) && (mat[dirY2 + y2][dirX2 + x2] == 0 || mat[dirY2 + y2][dirX2 + x2] == -2)) {
-                                    x2 += dirX2;
-                                    y2 += dirY2;
-                                }
-                                else    continue;
-                            }
-                            if(mat[y2][x2] == 0)
-                            {
-                                cell++;
-                                mat[y2][x2] = -2;
-                            }
-                            else    continue;
-                        }
-                    }
-                }
-                if(i == 0)  finalValue += cell*8;
-                else    finalValue -= cell*12;
-                cell = 0;
-                for(int i=0; i<10; i++)
-                    for(int j=0; j<10; j++)
-                        if(mat[i][j] == -2)
-                            mat[i][j] = 0;
-            }
-
+            finalValue += calcRegion();
             return finalValue;
         }
 
         float decideMove(int pCode, int depth, bool isMaximizer, node &enlist, int alpha = INT_MIN, int beta = INT_MAX, bool topMostLevel = false){
 
+            int i = 0;
+            while(checkTime() < timeBound)
+                evaluate(), i++;
+            cout << i << endl;
+            int tmp;cin>>tmp;
             float bestPoint = INT_MIN;
             map<float, bool> mappy;
             if(isMaximizer == false)    bestPoint = INT_MAX;
@@ -359,9 +442,9 @@ class state{
                             }
                             cntStates++;
                             /*if(depth == 2 ){
-                                cout<<"\n"<<depth << " * "<< stateCnt;
-                                cout<<" $ "<<enlist.stateChk.count(stateCnt) <<endl;
-                            }*/
+                              cout<<"\n"<<depth << " * "<< stateCnt;
+                              cout<<" $ "<<enlist.stateChk.count(stateCnt) <<endl;
+                              }*/
                         }
                         if(checkTime() > timeBound)
                         {
@@ -451,7 +534,7 @@ int main(){
     int i = 1;
     int cntFinal = 0;
     node enlist;
-    for(i = 1; i<3 && checkTime()<timeBound && contTurn; i++)
+    for(i = 1; i<20 && checkTime()<timeBound && contTurn; i++)
     {
         stBegin.decideMove(1, i, true, enlist, INT_MIN, INT_MAX, true);
         if(contTurn)
@@ -461,13 +544,13 @@ int main(){
             cntFinal = cnt;
             //cout<<"\n i : "<<i<<" time: "<<checkTime()<<" N: "<<cnt<<endl;
         }
-        cnt = 0;
+        //cnt = 0;
     }
     if(contTurn == false)   i--;
     //To give the final output
     cout<<stBegin.finalMove.y1<<" "<<stBegin.finalMove.x1<<endl;
     cout<<stBegin.finalMove.y2<<" "<<stBegin.finalMove.x2<<endl;
     cout<<stBegin.finalMove.f2<<" "<<stBegin.finalMove.f1<<endl;
-    cout<<"D: "<<level<<" T: "<<checkTime()<<" N:"<<cntFinal<<endl;
+    cout<<"D: "<<level<<" T: "<<checkTime()<<" N:"<<cnt<<endl;
     return 0;
 }
