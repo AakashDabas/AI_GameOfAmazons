@@ -411,13 +411,12 @@ class state{
                     else    finalValue -= cell*12;
                 }
             finalValue += calcRegion();
-            //cout << checkTime() << " " << cnt << endl;
+            cout << checkTime() << " " << cnt << endl;
             return finalValue;
         }
 
         float decideMove(int pCode, int depth, bool isMaximizer, node &enlist, int alpha = INT_MIN, int beta = INT_MAX, bool topMostLevel = false){
 
-            //evaluate();
             /*int i = 0;
             while(checkTime() < timeBound)
                 evaluate(), i++;
@@ -433,11 +432,6 @@ class state{
                 contTurn = false;
                 if(isMaximizer)     return alpha;
                 else    return beta;
-            }
-
-            if(depth == 0){
-                ++cnt;
-                return evaluate();//Returns leaf node heuristic value
             }
 
             int stateCnt = 0;
@@ -460,10 +454,11 @@ class state{
                         //To check if state is marked or not
                         mat[fire.y][fire.x] = -1;
                         stateCnt++;
+                        float val = 0;
                         if(cutOff){
                             int i = stateCnt;
                             if(depth == 1 ){
-                                float val = evaluate();
+                                val = evaluate();
                                 enlist.arr[val].push_back(stateCnt);
                             }
                             else if(enlist.stateChk[i] == false){
@@ -496,7 +491,10 @@ class state{
 
                         if(isMaximizer)     //Maximizer layer
                         {
-                            float valTmp = decideMove( pCode%2 + 1, depth - 1, (isMaximizer?false:true), enlistNxt, alpha, beta);
+                            float valTmp = 0;
+                            if(depth != 1)
+                                valTmp = decideMove( pCode%2 + 1, depth - 1, (isMaximizer?false:true), enlistNxt, alpha, beta);
+                            else    valTmp = val, cnt++;
                             if(valTmp > bestPoint){
                                 bestPoint = valTmp;
                                 if(topMostLevel)//To register the best move available
@@ -518,7 +516,10 @@ class state{
                         }
                         if(isMaximizer == false)    //Minimizer layer
                         {
-                            float valTmp = decideMove( pCode%2 + 1, depth - 1, (isMaximizer?false:true), enlistNxt, alpha, beta);
+                            float valTmp = 0;
+                            if(depth != 1)
+                                valTmp = decideMove( pCode%2 + 1, depth - 1, (isMaximizer?false:true), enlistNxt, alpha, beta);
+                            else    valTmp = val, cnt++;
                             if(valTmp < bestPoint)  bestPoint = valTmp;
                             if(bestPoint < beta)   beta = bestPoint;
                             if(beta <= alpha && alphaBeta)
