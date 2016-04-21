@@ -177,6 +177,20 @@ class state{
                 int dir[3] = {0, 0, 0};
         };
 
+        int calcConnectedRegion(int x, int y, int own, vector<vector<matPoint> > &matTmp, vector<vector<bool> > &ref){
+            int count = 0;
+            for(int i = -1; i <= 1; i++)
+                for(int j = -1; j <= 1; j++){
+                    if(i != 0 || j != 0){
+                        if(inRange(y + i, x + j) && matTmp[y + i][x + j].own == own && ref[y + i][x + j] == false){
+                            ref[y + i][x + j] = true;
+                            count = calcConnectedRegion(x + j, y + i, own, matTmp, ref) + 1;
+                        }
+                    }
+                }
+            return count;
+        }
+
         float calcRegion(){
             int cnt_ = 0, cnt__ = 0;
             matPoint matPt__;
@@ -268,7 +282,7 @@ class state{
                     stTmp_.y = y;
                     if(stTmp.flag == 0){
                         stTmp_.cnt++;
-                        if(matPt_.own == -1){
+                        if(matPt_.own == -1 && mat[y][x] == 0){
                             matPt_.steps = stTmp.cnt + 1;
                             matPt_.own = 0;
                             buffer.push_back(stTmp_);
@@ -293,28 +307,42 @@ class state{
                 }
             }
 
-            int cntH = 0, cntV = 0;
-            //cout << endl;
+            /*int cntH = 0, cntV = 0;
+            cout << endl;
             for(int i = 0; i < 10; i++){
                 for(int j = 0; j < 10; j++){
                     if(matTmp[i][j].own == 0){
                         cntH++;
-                        //cout << "+";
+                        cout << "+";
                     }
                     else if(matTmp[i][j].own == 1){
                         cntV++;
-                        //cout << "-";
+                        cout << "-";
                     }
-                    //else if(matTmp[i][j].own == 2)   cout << "o";
-                    //else    cout << ".";
-                    //cout << " ";
+                    else if(matTmp[i][j].own == 2)   cout << "o";
+                    else    cout << ".";
+                    cout << " ";
                 }
-                //cout << endl;
-            }
+                cout << endl;
+            }*/
             //cout << "H: "<<cntH << "V: "<< cntV<< endl;
             //cout << "CNT1: " << cnt_ << " CNT2: " << cnt__ << endl;
+            vector<vector<bool> >ref(10, vector<bool>(10, false));
+            int scr[2] = {0, 0};
+            for(int i = 0; i < 10; i++){
+                for(int j = 0; j < 10; j++){
+                    int own = matTmp[i][j].own;
+                    if(own <= 1){
+                        ref[i][j] = true;
+                        int val = calcConnectedRegion(i, j, own, matTmp, ref) + 1;
+                        if(val > scr[own])  scr[own] = val;
+                    }
+                }
+            }
+            //cout << "HERO: " << scr[0] << "  Vellion: " << scr[1];
             //int tmp; cin >> tmp;
-            return cntH * 10 - cntV * 8;
+            //return cntH * 10 - cntV * 8;
+            return scr[0] * 10 - scr[1] * 8;
         }
 
         float evaluate(){
@@ -383,16 +411,18 @@ class state{
                     else    finalValue -= cell*12;
                 }
             finalValue += calcRegion();
+            //cout << checkTime() << " " << cnt << endl;
             return finalValue;
         }
 
         float decideMove(int pCode, int depth, bool isMaximizer, node &enlist, int alpha = INT_MIN, int beta = INT_MAX, bool topMostLevel = false){
 
-            int i = 0;
+            //evaluate();
+            /*int i = 0;
             while(checkTime() < timeBound)
                 evaluate(), i++;
             cout << i << endl;
-            int tmp;cin>>tmp;
+            int tmp;cin>>tmp;*/
             float bestPoint = INT_MIN;
             map<float, bool> mappy;
             if(isMaximizer == false)    bestPoint = INT_MAX;
@@ -523,7 +553,6 @@ class state{
 
 int main(){
 
-    clock_t begin = clock();
     vector<vector<int> > mat(10, vector<int>(10));
     for(int i=0; i<10; i++)
         for(int j=0; j<10; j++)
@@ -534,7 +563,8 @@ int main(){
     int i = 1;
     int cntFinal = 0;
     node enlist;
-    for(i = 1; i<20 && checkTime()<timeBound && contTurn; i++)
+    clock_t begin = clock();
+    for(i = 1; i<2 && checkTime()<timeBound && contTurn; i++)
     {
         stBegin.decideMove(1, i, true, enlist, INT_MIN, INT_MAX, true);
         if(contTurn)
@@ -544,13 +574,13 @@ int main(){
             cntFinal = cnt;
             //cout<<"\n i : "<<i<<" time: "<<checkTime()<<" N: "<<cnt<<endl;
         }
-        //cnt = 0;
+        cnt = 0;
     }
     if(contTurn == false)   i--;
     //To give the final output
     cout<<stBegin.finalMove.y1<<" "<<stBegin.finalMove.x1<<endl;
     cout<<stBegin.finalMove.y2<<" "<<stBegin.finalMove.x2<<endl;
     cout<<stBegin.finalMove.f2<<" "<<stBegin.finalMove.f1<<endl;
-    cout<<"D: "<<level<<" T: "<<checkTime()<<" N:"<<cnt<<endl;
+    cout<<"D: "<<level<<" T: "<<checkTime()<<" N:"<<cntFinal<<endl;
     return 0;
 }
