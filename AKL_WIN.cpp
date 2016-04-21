@@ -33,7 +33,7 @@ class node{
         map<int, node> treeRecord;
         map<int, bool> stateChk;
 
-        void markNodes(bool order, int n=10)
+        void markNodes(bool order, int n=100)
         {
             if(!order){
                 //cout<<"\n----------------------------"<<endl;
@@ -357,37 +357,14 @@ class state{
             }
             //int tmp; cin >> tmp;
             //return cntH * 10 - cntV * 8;
-            return scr[0] * 10 - scr[1] * 8 + cntH * 2 - cntV * 2;
+            return scr[0] * 4 - scr[1] * 4 + cntH * 1 - cntV * 2;
         }
 
         float evaluate(bool dis = false){
             float finalValue = 0;
 
-            //This part checks for the proximity for all amazons
-            for(int i1=0 ; i1<=1; i1++)
-                for(int i2=0; i2<=3; i2++)
-                {
-                    int pX,pY;
-                    pX = position[i1][i2].x;
-                    pY = position[i1][i2].y;
-                    int cell = 0;
-                    for(int i=-1; i<=1; i++)
-                        for(int j=-1;j <=1; j++){
-                            int xT, yT;
-                            xT = pX + i;
-                            yT = pY + j;
-                            if(inRange(xT, yT)){
-                                if(mat[yT][xT] != 0)
-                                    cell++;
-                            }
-                            else    cell++;
-                        }
-                    if(i1 == 0)     finalValue -= cell*8;
-                    else    finalValue += cell*12;
-                }
-
             //To check the one move direction cells available
-            for(int i=0; i<2 && 0; i++)
+            for(int i=0; i<2; i++)
                 for(int j=0; j<4; j++)
                 {
                     int pX, pY;
@@ -422,10 +399,10 @@ class state{
                         }
                         cell++;
                     }
-                    if(i == 0)  finalValue += cell*8;
-                    else    finalValue -= cell*12;
+                    if(i == 0)  finalValue += cell*4;
+                    else    finalValue -= cell*4;
                 }
-            if(level > 30)
+            if(level > 25)
                 finalValue += calcRegion(dis);
             return finalValue;
         }
