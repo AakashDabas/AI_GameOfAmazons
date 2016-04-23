@@ -7,7 +7,7 @@
 #include<deque>
 
 #define timeBound   0.95
-#define alphaBeta   true
+#define alphaBeta   false
 #define cutOff  true
 #define inRange(x, y) ( (x >= 0) && (x < 10) && (y >= 0) && (y < 10) )
 #define loop2(itr1, itr2, lim1, lim2) for(; itr1 < lim1; itr1++)  for(; itr2 < lim2; itr2++)
@@ -20,6 +20,7 @@ clock_t clockStart;
 long long int cnt, cnt2, cntStates;
 bool contTurn = true;
 int level;
+int cntMoves;
 
 #define checkTime() ((double)(clock() - clockStart)/ CLOCKS_PER_SEC)
 
@@ -33,7 +34,7 @@ class node{
         map<int, node> treeRecord;
         map<int, bool> stateChk;
 
-        void markNodes(bool order, int n=10)
+        void markNodes(bool order, int n=20)
         {
             if(!order){
                 //cout<<"\n----------------------------"<<endl;
@@ -179,8 +180,9 @@ class state{
 
         int calcConnectedRegion(int x, int y, int own, vector<vector<matPoint> > &matTmp, vector<vector<bool> > &ref){
             int count = 0;
-            for(int i = -1; i <= 1; i++)
-                for(int j = -1; j <= 1; j++){
+            int f = 2
+            for(int i = -f; i <= f; i++)
+                for(int j = -f; j <= f; j++){
                     if(i != 0 || j != 0){
                         if(inRange(y + i, x + j) && matTmp[y + i][x + j].own == own && ref[y + i][x + j] == false){
                             ref[y + i][x + j] = true;
@@ -355,9 +357,8 @@ class state{
                 cout << "HERO: " << scr[0] << "  Vellion: " << scr[1] << endl;
                 cout << "cntH: " << cntH << " cntV: " << cntV << endl;
             }
-            //int tmp; cin >> tmp;
-            //return cntH * 10 - cntV * 8;
-            return scr[0] * 10 - scr[1] * 8 + cntH * 2 - cntV * 2;
+            float degree = scr[0] / (float)(100 - 8 - cntMoves);
+            return scr[0] * 5 * degree * 10 - scr[1] * 8 + cntH * 2 - cntV * 2 ;
         }
 
         float evaluate(bool dis = false){
@@ -382,10 +383,11 @@ class state{
                             }
                             else    cell++;
                         }
-                    if(i1 == 0)     finalValue -= cell*8;
-                    else    finalValue += cell*12;
+                    if(i1 == 0)     finalValue -= cell*2;
+                    else    finalValue += cell*2;
                 }
 
+            vector<vector<int> > matRef(10, vector<int>(10, 0));
             //To check the one move direction cells available
             for(int i=0; i<2 && 0; i++)
                 for(int j=0; j<4; j++)
@@ -399,7 +401,7 @@ class state{
                     dirX = dirY = -1;
                     while(1)
                     {
-                        if(inRange(dirX + x, dirY + y) && mat[dirY + y][dirX + x] == 0) {
+                        if(inRange(dirX + x, dirY + y) && mat[dirY + y][dirX + x] == 0 && mat[dirY + y][dirX + x] & (i + 1)) {
                             x += dirX;
                             y += dirY;
                         }
@@ -414,19 +416,19 @@ class state{
                             else if(dirX == 0 && dirY == 1)  dirX = -1;
                             else if(dirX == -1 && dirY == 1)  dirY = 0;
                             else  break;
-                            if(inRange(dirX + x, dirY + y) && mat[dirY + y][dirX + x] == 0) {
+                            if(inRange(dirX + x, dirY + y) && mat[dirY + y][dirX + x] == 0 && mat[dirY + y][dirX + x] & (i + 1)) {
                                 x += dirX;
                                 y += dirY;
                             }
                             else    continue;
                         }
                         cell++;
+                        matRef[y][x] |= i + 1;
                     }
-                    if(i == 0)  finalValue += cell*8;
-                    else    finalValue -= cell*12;
+                    if(i == 0)  finalValue += cell*3;
+                    else    finalValue -= cell*4;
                 }
-            if(level > 30)
-                finalValue += calcRegion(dis);
+            finalValue += calcRegion(dis);
             return finalValue;
         }
 
@@ -577,7 +579,7 @@ int main(){
     for(int i=0; i<10; i++)
         for(int j=0; j<10; j++){
             cin>> mat[i][j];
-            if(mat[i][j] == -1) level++;
+            if(mat[i][j] == -1) cntMoves++;
         }
 
     state stBegin;
@@ -594,6 +596,7 @@ int main(){
             stBegin.finalMove = stBegin.moveTmp;
             cntFinal = cnt;
             //cout<<"\n i : "<<i<<" time: "<<checkTime()<<" N: "<<cnt<<endl;
+            level++;
         }
         cnt = 0;
     }
