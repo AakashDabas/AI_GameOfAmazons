@@ -7,7 +7,7 @@
 #include<deque>
 
 #define timeBound   0.95
-#define alphaBeta   false
+#define alphaBeta   true
 #define cutOff  true
 #define inRange(x, y) ( (x >= 0) && (x < 10) && (y >= 0) && (y < 10) )
 #define loop2(itr1, itr2, lim1, lim2) for(; itr1 < lim1; itr1++)  for(; itr2 < lim2; itr2++)
@@ -34,14 +34,14 @@ class node{
         map<int, node> treeRecord;
         map<int, bool> stateChk;
 
-        void markNodes(bool order, int n=20)
+        void markNodes(bool order, int n=10)
         {
             if(!order){
                 //cout<<"\n----------------------------"<<endl;
                 map<float, vector<int> > :: iterator it = arr.begin();
                 for(int i=0; it != arr.end(); it++){
                     //if(i < n)
-                    //cout<<endl<<it->first<<" : ";
+                        //cout<<endl<<it->first<<" : ";
                     if(i < n)
                         while(it->second.empty() == false){
                             //cout<<it->second.back()<<" ";
@@ -58,7 +58,7 @@ class node{
                 it--;
                 for(int i=0; it != arr.begin(); it--){
                     //if(i < n)
-                    //cout<<endl<<it->first<<" : ";
+                        //cout<<endl<<it->first<<" : ";
                     if(i < n)
                         while(it->second.empty() == false){
                             //cout<<it->second.back()<<" ";
@@ -69,6 +69,7 @@ class node{
                     it->second.clear();
                 }
             }
+            //cout << endl;
         }
         void display(){
             cout<<"\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n";
@@ -180,7 +181,7 @@ class state{
 
         int calcConnectedRegion(int x, int y, int own, vector<vector<matPoint> > &matTmp, vector<vector<bool> > &ref){
             int count = 0;
-            int f = 2
+            int f = 1;
             for(int i = -f; i <= f; i++)
                 for(int j = -f; j <= f; j++){
                     if(i != 0 || j != 0){
@@ -229,30 +230,30 @@ class state{
                     continue;//Checks if this cell still belongs to the first element or not;
                 }
                 /*int cntH = 0, cntV = 0;
-                cout << "OWNED : " << stTmp.flag << endl;
-                cout << "Y : " << y << " X : "<< x<< endl;
-                for(int i = 0; i < 10; i++){
-                    for(int j = 0; j < 10; j++){
-                        if( i == y && j == x)   cout << "&";
-                        else if(matTmp[i][j].own == 0){
-                            cntH++;
-                            cout << "+";
-                        }
-                        else if(matTmp[i][j].own == 1){
-                            cntV++;
-                            cout << "-";
-                        }
-                        else if(matTmp[i][j].own == 2)    cout << "o";
-                        else    cout << ".";
-                        cout << " ";
-                    }
-                    cout << endl;
-                }
-                cout << "H : "<< cntH << "V : "<< cntV;
-                cout << "CNT1: "<<cnt_<<" CNT2: "<<cnt__ << endl;
-                cnt_ = cnt__ = 0;
-                int tmp__;
-                cin >> tmp__;*/
+                  cout << "OWNED : " << stTmp.flag << endl;
+                  cout << "Y : " << y << " X : "<< x<< endl;
+                  for(int i = 0; i < 10; i++){
+                  for(int j = 0; j < 10; j++){
+                  if( i == y && j == x)   cout << "&";
+                  else if(matTmp[i][j].own == 0){
+                  cntH++;
+                  cout << "+";
+                  }
+                  else if(matTmp[i][j].own == 1){
+                  cntV++;
+                  cout << "-";
+                  }
+                  else if(matTmp[i][j].own == 2)    cout << "o";
+                  else    cout << ".";
+                  cout << " ";
+                  }
+                  cout << endl;
+                  }
+                  cout << "H : "<< cntH << "V : "<< cntV;
+                  cout << "CNT1: "<<cnt_<<" CNT2: "<<cnt__ << endl;
+                  cnt_ = cnt__ = 0;
+                  int tmp__;
+                  cin >> tmp__;*/
                 while(1)
                 {
                     cnt_++;
@@ -310,23 +311,23 @@ class state{
             }
 
             /*int cntH = 0, cntV = 0;
-            cout << endl;
-            for(int i = 0; i < 10; i++){
-                for(int j = 0; j < 10; j++){
-                    if(matTmp[i][j].own == 0){
-                        cntH++;
-                        cout << "+";
-                    }
-                    else if(matTmp[i][j].own == 1){
-                        cntV++;
-                        cout << "-";
-                    }
-                    else if(matTmp[i][j].own == 2)   cout << "o";
-                    else    cout << ".";
-                    cout << " ";
-                }
-                cout << endl;
-            }*/
+              cout << endl;
+              for(int i = 0; i < 10; i++){
+              for(int j = 0; j < 10; j++){
+              if(matTmp[i][j].own == 0){
+              cntH++;
+              cout << "+";
+              }
+              else if(matTmp[i][j].own == 1){
+              cntV++;
+              cout << "-";
+              }
+              else if(matTmp[i][j].own == 2)   cout << "o";
+              else    cout << ".";
+              cout << " ";
+              }
+              cout << endl;
+              }*/
             //cout << "H: "<<cntH << "V: "<< cntV<< endl;
             //cout << "CNT1: " << cnt_ << " CNT2: " << cnt__ << endl;
 
@@ -357,8 +358,13 @@ class state{
                 cout << "HERO: " << scr[0] << "  Vellion: " << scr[1] << endl;
                 cout << "cntH: " << cntH << " cntV: " << cntV << endl;
             }
-            float degree = scr[0] / (float)(100 - 8 - cntMoves);
-            return scr[0] * 5 * degree * 10 - scr[1] * 8 + cntH * 2 - cntV * 2 ;
+            float d1 = scr[0] / (float)(100 - 8 - cntMoves);
+            float d2 = scr[1] / (float)(100 - 8 - cntMoves);
+            if(dis){
+                cout << scr[0] << " " << d1 << " " << 100 - 8 - cntMoves << endl;
+                cout << scr[1] << " " << d2 << " " << 100 - 8 - cntMoves << endl;
+            }
+            return scr[0] * 5 * (d1 > 0.2 ? 1 : -1) - scr[1] * 8 * (d2 > 0.2 ? 1 : -1) + cntH * 2 - cntV * 2 ;
         }
 
         float evaluate(bool dis = false){
@@ -389,7 +395,7 @@ class state{
 
             vector<vector<int> > matRef(10, vector<int>(10, 0));
             //To check the one move direction cells available
-            for(int i=0; i<2 && 0; i++)
+            for(int i=0; i<2; i++)
                 for(int j=0; j<4; j++)
                 {
                     int pX, pY;
@@ -401,7 +407,7 @@ class state{
                     dirX = dirY = -1;
                     while(1)
                     {
-                        if(inRange(dirX + x, dirY + y) && mat[dirY + y][dirX + x] == 0 && mat[dirY + y][dirX + x] & (i + 1)) {
+                        if(inRange(dirX + x, dirY + y) && mat[dirY + y][dirX + x] == 0 && ((mat[dirY + y][dirX + x] & (i + 1)) == 0)) {
                             x += dirX;
                             y += dirY;
                         }
@@ -436,10 +442,10 @@ class state{
 
             //evaluate(true);int tmp;cin>>tmp;
             /*int i = 0;
-            while(checkTime() < timeBound)
-                evaluate(), i++;
-            cout << i << endl;
-            int tmp;cin>>tmp;*/
+              while(checkTime() < timeBound)
+              evaluate(), i++;
+              cout << i << endl;
+              int tmp;cin>>tmp;*/
             float bestPoint = INT_MIN;
             map<float, bool> mappy;
             if(isMaximizer == false)    bestPoint = INT_MAX;
@@ -473,10 +479,10 @@ class state{
                         mat[fire.y][fire.x] = -1;
                         stateCnt++;
                         float val = 0;
+                        val = evaluate();
                         if(cutOff){
                             int i = stateCnt;
                             if(depth == 1 ){
-                                val = evaluate();
                                 enlist.arr[val].push_back(stateCnt);
                             }
                             else if(enlist.stateChk[i] == false){
@@ -485,11 +491,13 @@ class state{
                             }
                             cntStates++;
                             if(depth > 1 && 0){
+                                cout << val << "< - * -------\n";
                                 if(isMaximizer) cout << "++++++++++++++++++++\n";
                                 else    cout << "----------------------\n";
                                 displayMat(mat);
                                 cout << "\n\n";
-                                cout << evaluate(true);
+                                cout << val << endl;
+                                //cout << evaluate(true);
                             }
                         }
                         if(checkTime() > timeBound)
@@ -545,7 +553,7 @@ class state{
                             if(bestPoint < beta)   beta = bestPoint;
                             if(beta <= alpha && alphaBeta)
                             {
-                                //cout<<"Alpha CutOff V;";
+                                //cout<<"Alpha CutOff;";
                                 mat[fire.y][fire.x] = 0;
                                 mat[pY][pX] = pCode;
                                 mat[moveAmazon.y][moveAmazon.x] = 0;
